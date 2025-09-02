@@ -6,6 +6,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { Server as SocketIOServer } from "socket.io";
+import config from "./config/index.js";
 
 dotenv.config();
 
@@ -56,7 +57,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = config.port;
 server.listen(PORT, () => {
   console.log(`🚀 Server listening on http://localhost:${PORT}`);
 });
