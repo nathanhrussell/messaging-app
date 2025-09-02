@@ -11,7 +11,11 @@ import config from "./config/index.js"; // loads .env + validates
 import prisma from "./db/prisma.js"; // Prisma singleton
 import { assertDbConnection } from "./db/health.js";
 
+import healthRouter from "./routes/health.js";
+
 const app = express();
+
+app.use("/", healthRouter);
 
 // --- Middleware
 app.use(helmet());
