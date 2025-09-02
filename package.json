@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon server/index.js",
     "start": "cross-env NODE_ENV=production node server/index.js",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed"
   },
   "repository": {
     "type": "git",
