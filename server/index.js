@@ -16,7 +16,7 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
     credentials: true,
-  })
+  }),
 );
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -24,7 +24,9 @@ app.use(cookieParser());
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 app.get("/health", (_req, res) => {
-  res.status(200).json({ ok: true, env: process.env.NODE_ENV || "development" });
+  res
+    .status(200)
+    .json({ ok: true, env: process.env.NODE_ENV || "development" });
 });
 
 app.use(express.static("client"));
