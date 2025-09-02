@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <title>Chat App</title>
+  </head>
+  <body>
+    <main>
+      <h1>Chat App – Hello World</h1>
+      <p id="status">Connecting to socket…</p>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io({ withCredentials: true });
+
+      socket.on("connect", () => {
+        document.getElementById("status").textContent = "Socket connected ✓";
+        socket.emit("client:ping", { ts: Date.now() });
+      });
+
+      socket.on("server:welcome", (data) => {
+        console.log("server:welcome", data);
+      });
+
+      socket.on("server:pong", (data) => {
+        console.log("server:pong", data);
+      });
+    </script>
+  </body>
+</html>
