@@ -16,10 +16,7 @@ import authRouter from "./routes/auth.js";
 
 const app = express();
 
-app.use("/", healthRouter);
-
-// --- Middleware
-app.use("/api/auth", authRouter);
+// --- Global middleware (must come BEFORE routes that read req.body)
 app.use(helmet());
 app.use(
   cors({
@@ -27,17 +24,21 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "1mb" })); // <-- move up
+app.use(express.urlencoded({ extended: true })); // <-- move up
 app.use(cookieParser());
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+
+// --- Routes
+app.use("/", healthRouter);
+app.use("/api/auth", authRouter); // <-- now after parsers
 
 // --- Healthchecks
 app.get("/health", (_req, res) => {
   res.status(200).json({ ok: true, env: process.env.NODE_ENV || "development" });
 });
 
-// Optional DB health endpoint (handy in dev/Render)
+// Optional DB health endpoint
 app.get("/db-health", async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -62,14 +63,11 @@ const io = new SocketIOServer(server, {
 
 io.on("connection", (socket) => {
   console.log("🔌 Socket connected:", socket.id);
-
   socket.emit("server:welcome", { message: "Hello from server 👋" });
-
   socket.on("client:ping", (payload) => {
     console.log("Received client:ping", payload);
     socket.emit("server:pong", { ts: Date.now() });
   });
-
   socket.on("disconnect", (reason) => {
     console.log("Socket disconnected:", socket.id, reason);
   });
