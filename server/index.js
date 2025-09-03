@@ -7,17 +7,19 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { Server as SocketIOServer } from "socket.io";
 
-import config from "./config/index.js"; // loads .env + validates
-import prisma from "./db/prisma.js"; // Prisma singleton
+import config from "./config/index.js";
+import prisma from "./db/prisma.js";
 import { assertDbConnection } from "./db/health.js";
 
 import healthRouter from "./routes/health.js";
+import authRouter from "./routes/auth.js";
 
 const app = express();
 
 app.use("/", healthRouter);
 
 // --- Middleware
+app.use("/api/auth", authRouter);
 app.use(helmet());
 app.use(
   cors({
