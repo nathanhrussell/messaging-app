@@ -2,7 +2,13 @@
   "name": "messaging-app",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
+  "imports": {
+    "#config": "./server/config/index.js",
+    "#prisma": "./server/db/prisma.js",
+    "#jwt": "./server/lib/jwt.js"
+  },
+  "module": "server/index.js",
   "prisma": {
     "seed": "node prisma/seed.js"
   },

@@ -14,6 +14,7 @@
     "prettier/prettier": ["error", { "singleQuote": false, "semi": true }],
     "no-console": "off",
     "import/extensions": ["error", "ignorePackages", { "js": "always" }],
+    "import/prefer-default-export": "off",
     "import/no-extraneous-dependencies": [
       "error",
       { "devDependencies": ["**/*.config.js", "**/*.config.cjs", "**/*.test.js", "server/**"] }
