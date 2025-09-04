@@ -1,4 +1,4 @@
-import { verifyAccessToken } from "../../jwt.js";
+import { verifyAccessToken } from "../lib/jwt.js";
 
 export function requireAuth(req, res, next) {
   try {
