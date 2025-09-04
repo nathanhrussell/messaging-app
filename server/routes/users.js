@@ -108,6 +108,7 @@ router.post("/me/avatar", requireAuth, upload.single("avatar"), async (req, res)
 
     return res.status(200).json(updated);
   } catch (e) {
+    console.error("Cloudinary upload failed:", e);
     const isSize = e?.message?.toLowerCase?.().includes("file too large");
     const isType = e?.message === "Invalid file type";
     if (isSize || isType) {
