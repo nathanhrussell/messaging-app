@@ -14,6 +14,7 @@ import { assertDbConnection } from "./db/health.js";
 
 import healthRouter from "./routes/health.js";
 import authRouter from "./routes/auth.js";
+import conversationsRouter from "./routes/conversations.js";
 
 const app = express();
 
@@ -30,6 +31,9 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(express.json());
+app.use("/api/conversations", conversationsRouter);
 
 app.use(express.json({ limit: "1mb" })); // <-- move up
 app.use(express.urlencoded({ extended: true })); // <-- move up
