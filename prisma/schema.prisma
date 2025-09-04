@@ -29,6 +29,8 @@ model Conversation {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   lastMessageAt DateTime?
+  isGroup       Boolean   @default(false)
+  pairKey       String?   @unique
 
   messages     Message[]
   participants Participant[]
