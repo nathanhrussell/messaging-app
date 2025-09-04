@@ -4,44 +4,48 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 
 async function main() {
-  const passwordHash = await bcrypt.hash("password123", 10);
+  const passwordHash = await bcrypt.hash("Secret123!", 10);
 
-  const alice = await prisma.user.upsert({
-    where: { email: "alice@example.com" },
+  const userA = await prisma.user.upsert({
+    where: { email: "usera@example.com" },
     update: {},
     create: {
-      email: "alice@example.com",
+      email: "usera@example.com",
       passwordHash,
-      displayName: "Alice",
+      displayName: "User A",
     },
   });
 
-  const bob = await prisma.user.upsert({
-    where: { email: "bob@example.com" },
+  const userB = await prisma.user.upsert({
+    where: { email: "userb@example.com" },
     update: {},
     create: {
-      email: "bob@example.com",
+      email: "userb@example.com",
       passwordHash,
-      displayName: "Bob",
+      displayName: "User B",
     },
   });
 
   const convo = await prisma.conversation.create({
     data: {
       participants: {
-        create: [{ userId: alice.id }, { userId: bob.id }],
+        create: [{ userId: userA.id }, { userId: userB.id }],
       },
       messages: {
         create: [
-          { senderId: alice.id, body: "Hey Bob 👋" },
-          { senderId: bob.id, body: "Hi Alice!" },
+          { senderId: userA.id, body: "Hey B 👋" },
+          { senderId: userB.id, body: "Hi A!" },
         ],
       },
       lastMessageAt: new Date(),
     },
   });
 
-  console.log("Seeded users + conversation:", { alice: alice.id, bob: bob.id, convo: convo.id });
+  console.log("Seeded users + conversation:", {
+    userA: userA.id,
+    userB: userB.id,
+    convo: convo.id,
+  });
 }
 
 main()
