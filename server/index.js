@@ -6,6 +6,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { Server as SocketIOServer } from "socket.io";
+import usersRouter from "./routes/users.js";
 
 import config from "./config/index.js";
 import prisma from "./db/prisma.js";
@@ -32,6 +33,7 @@ app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 // --- Routes
 app.use("/", healthRouter);
 app.use("/api/auth", authRouter); // <-- now after parsers
+app.use("/api/users", usersRouter);
 
 // --- Healthchecks
 app.get("/health", (_req, res) => {
