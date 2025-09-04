@@ -19,12 +19,18 @@ const app = express();
 
 // --- Global middleware (must come BEFORE routes that read req.body)
 app.use(helmet());
+const allowedOrigin =
+  process.env.NODE_ENV === "production"
+    ? process.env.CORS_ORIGIN_PROD
+    : process.env.CORS_ORIGIN || "http://localhost:5173";
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: allowedOrigin,
     credentials: true,
   })
 );
+
 app.use(express.json({ limit: "1mb" })); // <-- move up
 app.use(express.urlencoded({ extended: true })); // <-- move up
 app.use(cookieParser());
