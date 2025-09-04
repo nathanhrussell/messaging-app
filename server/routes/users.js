@@ -1,6 +1,9 @@
+import { Readable } from "node:stream";
 import express from "express";
-import prisma from "../db/prisma.js";
+import cloudinary from "../config/cloudinary.js";
+import upload from "../middleware/upload.js";
 import { requireAuth } from "../middleware/auth.js";
+import prisma from "../db/prisma.js";
 
 const router = express.Router();
 
@@ -67,6 +70,52 @@ router.patch("/me", requireAuth, async (req, res) => {
     return res.json(updated);
   } catch {
     return res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+router.post("/me/avatar", requireAuth, upload.single("avatar"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    // Upload buffer to Cloudinary via stream
+    const uploadStream = () =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "chat-app/avatars",
+            public_id: req.user.id, // keep one avatar per user (overwrites)
+            overwrite: true,
+            resource_type: "image",
+            transformation: [
+              // normalize to a square-ish avatar; tweak to taste
+              { width: 256, height: 256, crop: "fill", gravity: "face:auto" },
+              { quality: "auto", fetch_format: "auto" },
+            ],
+          },
+          (err, result) => (err ? reject(err) : resolve(result))
+        );
+        Readable.from(req.file.buffer).pipe(stream);
+      });
+
+    const result = await uploadStream();
+    if (!result?.secure_url) return res.status(500).json({ error: "Upload failed" });
+
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatarUrl: result.secure_url },
+      select: { id: true, email: true, displayName: true, bio: true, avatarUrl: true },
+    });
+
+    return res.status(200).json(updated);
+  } catch (e) {
+    const isSize = e?.message?.toLowerCase?.().includes("file too large");
+    const isType = e?.message === "Invalid file type";
+    if (isSize || isType) {
+      return res
+        .status(400)
+        .json({ error: isSize ? "File too large (max 5MB)" : "Invalid file type" });
+    }
+    return res.status(500).json({ error: "Failed to upload avatar" });
   }
 });
 
