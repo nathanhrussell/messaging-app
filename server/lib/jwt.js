@@ -1,5 +1,12 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import config from "../config/index.js";
+
+function fp(s) {
+  return s ? crypto.createHash("sha256").update(s).digest("hex").slice(0, 8) : "undefined";
+}
+console.log("[JWT] access fp:", fp(config.jwt.secret));
+console.log("[JWT] refresh fp:", fp(config.jwt.refreshSecret));
 
 const ACCESS_TTL = "15m";
 const REFRESH_TTL = "7d";

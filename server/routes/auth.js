@@ -1,7 +1,7 @@
 /* eslint-disable import/no-unresolved */
 import express from "express";
 import bcrypt from "bcrypt";
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from "#jwt";
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../lib/jwt.js";
 import prisma from "../db/prisma.js";
 
 const router = express.Router();
