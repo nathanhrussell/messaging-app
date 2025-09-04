@@ -1,5 +1,5 @@
 import express from "express";
-import { requireAuth } from "server/middleware/auth.js";
+import { requireAuth } from "../middleware/auth.js";
 import { createOrGetOneToOneConversation } from "../services/conversations.js";
 
 const router = express.Router();
