@@ -64,3 +64,85 @@ export async function createOrGetOneToOneConversation(userIdA, userIdB) {
     throw err;
   }
 }
+
+export async function getConversationsForUser(userId, { limit = 20 } = {}) {
+  // 1) Fetch conversations + your participant row + partner (+ last message)
+  const convos = await prisma.conversation.findMany({
+    where: {
+      participants: { some: { userId } },
+    },
+    orderBy: [{ lastMessageAt: "desc" }, { updatedAt: "desc" }],
+    take: limit,
+    select: {
+      id: true,
+      lastMessageAt: true,
+      participants: {
+        select: {
+          userId: true,
+          isArchived: true,
+          isFavourite: true,
+          lastReadAt: true,
+          user: {
+            select: { id: true, displayName: true, avatarUrl: true },
+          },
+        },
+      },
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { id: true, body: true, createdAt: true, senderId: true },
+      },
+    },
+  });
+
+  // 2) Shape + compute unread counts (simple & clear; N+1 counts)
+  const items = await Promise.all(
+    convos.map(async (c) => {
+      const me = c.participants.find((p) => p.userId === userId);
+      const partner = c.participants.find((p) => p.userId !== userId);
+
+      // last message
+      const lastMessage = c.messages[0] || null;
+
+      // unread: partner messages after my lastReadAt
+      const unreadCount = await prisma.message.count({
+        where: {
+          conversationId: c.id,
+          createdAt: {
+            gt: me?.lastReadAt ?? new Date(0),
+          },
+          senderId: {
+            not: userId,
+          },
+        },
+      });
+
+      return {
+        id: c.id,
+        lastMessageAt: c.lastMessageAt,
+        partner: partner
+          ? {
+              id: partner.user.id,
+              displayName: partner.user.displayName,
+              avatarUrl: partner.user.avatarUrl,
+            }
+          : null,
+        lastMessage: lastMessage
+          ? {
+              id: lastMessage.id,
+              body: lastMessage.body,
+              createdAt: lastMessage.createdAt,
+              senderId: lastMessage.senderId,
+            }
+          : null,
+        unreadCount,
+        flags: {
+          isArchived: !!me?.isArchived,
+          isFavourite: !!me?.isFavourite,
+        },
+      };
+    })
+  );
+
+  return items;
+}
