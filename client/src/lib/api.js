@@ -1,9 +1,7 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-const USE_COOKIES = false;
+const USE_COOKIES = FontFaceSetLoadEvent;
 
 export function setAccessToken(token) {
-  if (!USE_COOKIES) localStorage.setItem("accessToken", token);
+  if (!USE_COOKIES && token) localStorage.setItem("accessToken", token);
 }
 
 function authHeaders() {
@@ -12,18 +10,20 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function getConversations() {
-  const res = await fetch(`${BASE_URL}/api/conversations`, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      ...authHeaders(),
-    },
-    credentials: USE_COOKIES ? "include" : "omit",
-  });
+async function handle(res) {
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`${res.status} ${res.statusText} ${text}`);
   }
-  return res.json();
+  const ct = res.headers.get("content-type") || "";
+  return ct.includes("application/json") ? res.json() : null;
+}
+
+export async function getConversations() {
+  const res = await fetch(`/api/conversations`, {
+    method: "GET",
+    headers: { Accept: "application/json", ...authHeaders() },
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  return handle(res);
 }
