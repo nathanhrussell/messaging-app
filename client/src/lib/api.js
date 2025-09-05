@@ -6,24 +6,14 @@ export function setAccessToken(token) {
 
 function authHeaders() {
   if (USE_COOKIES) return {};
-  const token = localStorage.getItem("accessToken");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-async function handle(res) {
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`${res.status} ${res.statusText} ${text}`);
-  }
-  const ct = res.headers.get("content-type") || "";
-  return ct.includes("application/json") ? res.json() : null;
+  const t = localStorage.getItem("accessToken");
+  return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
 export async function getConversations() {
-  const res = await fetch(`/api/conversations`, {
-    method: "GET",
+  const res = await fetch("/api/conversations", {
     headers: { Accept: "application/json", ...authHeaders() },
-    credentials: "omit",
+    credentials: USE_COOKIES ? "include" : "omit",
   });
-  return handle(res);
+  return res.json();
 }
