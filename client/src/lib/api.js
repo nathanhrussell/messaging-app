@@ -23,7 +23,7 @@ export async function getConversations() {
   const res = await fetch(`/api/conversations`, {
     method: "GET",
     headers: { Accept: "application/json", ...authHeaders() },
-    credentials: USE_COOKIES ? "include" : "omit",
+    credentials: "omit",
   });
   return handle(res);
 }
