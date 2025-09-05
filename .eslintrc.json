@@ -4,16 +4,19 @@
     "node": true,
     "browser": true
   },
-  "extends": ["airbnb-base", "plugin:prettier/recommended"],
-  "plugins": ["prettier"],
+  "extends": ["airbnb", "plugin:prettier/recommended"],
+  "plugins": ["prettier", "react"],
   "parserOptions": {
     "ecmaVersion": "latest",
-    "sourceType": "module"
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
   },
   "rules": {
     "prettier/prettier": ["error", { "singleQuote": false, "semi": true }],
     "no-console": "off",
-    "import/extensions": ["error", "ignorePackages", { "js": "always" }],
+    "import/extensions": ["error", "ignorePackages", { "js": "always", "jsx": "always" }], // <-- Added "jsx" extension
     "import/prefer-default-export": "off",
     "import/no-extraneous-dependencies": [
       "error",
@@ -21,9 +24,12 @@
     ]
   },
   "settings": {
+    "react": {
+      "version": "detect"
+    },
     "import/resolver": {
       "node": {
-        "extensions": [".js", ".json"]
+        "extensions": [".js", ".jsx", ".json"]
       }
     }
   }
