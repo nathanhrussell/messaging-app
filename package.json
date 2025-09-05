@@ -19,7 +19,10 @@
     "format": "prettier --write .",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "client:dev": "cd client && npm run dev",
+    "client:build": "cd client && npm run build",
+    "dev:all": "concurrently \"npm run dev\" \"npm run client:dev\""
   },
   "repository": {
     "type": "git",
@@ -45,8 +48,6 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "pg": "^8.16.3",
-    "prop-types": "^15.8.1",
-    "react": "^19.1.1",
     "socket.io": "^4.8.1",
     "uuid": "^11.1.0"
   },
