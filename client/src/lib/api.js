@@ -1,4 +1,4 @@
-const USE_COOKIES = FontFaceSetLoadEvent;
+const USE_COOKIES = false;
 
 export function setAccessToken(token) {
   if (!USE_COOKIES && token) localStorage.setItem("accessToken", token);
@@ -15,5 +15,6 @@ export async function getConversations() {
     headers: { Accept: "application/json", ...authHeaders() },
     credentials: USE_COOKIES ? "include" : "omit",
   });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
 }
