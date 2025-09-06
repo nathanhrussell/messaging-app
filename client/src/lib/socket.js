@@ -5,4 +5,4 @@ export const socket = io("/", {
 });
 
 socket.on("connect", () => console.log("[socket] connected", socket.id));
-socket.on("connect_error", (err) => console.error("[socket] connect_error", err.message));
+socket.on("connect_error", (err) => console.error("[socket] error:", err.message));
