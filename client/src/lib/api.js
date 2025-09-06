@@ -1,7 +1,7 @@
 const USE_COOKIES = false;
 
-export function setAccessToken(token) {
-  if (!USE_COOKIES && token) localStorage.setItem("accessToken", token);
+export function setAccessToken(t) {
+  if (!USE_COOKIES && t) localStorage.setItem("accessToken", t);
 }
 
 function authHeaders() {
