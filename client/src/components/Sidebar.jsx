@@ -1,39 +1,38 @@
+// Sidebar.jsx
 import PropTypes from "prop-types";
-import ConversationItem from "./ConversationItem.jsx";
 
-export default function Sidebar({ items, isLoading, error, onSelect }) {
+function Item({ icon, label, onClick }) {
   return (
-    <aside className="w-full md:w-96 border-r border-gray-200 dark:border-gray-800 h-screen overflow-y-auto p-3 bg-white dark:bg-gray-900">
-      <h2 className="text-lg font-semibold mb-3">Chats</h2>
-
-      {isLoading ? (
-        <div className="space-y-2">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse h-14 bg-gray-100 dark:bg-gray-800 rounded-2xl" />
-          ))}
-        </div>
-      ) : error ? (
-        <div className="text-red-600 text-sm break-words">Error loading conversations: {error}</div>
-      ) : items?.length ? (
-        <div className="space-y-1">
-          {items.map((c) => (
-            <ConversationItem key={c.id} convo={c} onClick={() => onSelect?.(c)} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-sm text-gray-500">No conversations yet</div>
-      )}
-    </aside>
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex md:flex-col items-center gap-2 px-4 py-3 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+    >
+      <span className="text-xl">{icon}</span>
+      <span className="hidden xl:block text-sm">{label}</span>
+    </button>
   );
 }
 
-Sidebar.propTypes = {
-  items: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    })
-  ),
-  isLoading: PropTypes.bool.isRequired,
-  error: PropTypes.string,
-  onSelect: PropTypes.func,
+Item.propTypes = {
+  icon: PropTypes.node.isRequired,
+  label: PropTypes.string.isRequired,
+  onClick: PropTypes.func,
 };
+
+Item.defaultProps = {
+  onClick: undefined,
+};
+
+export default function Sidebar() {
+  return (
+    <nav className="border-r border-gray-200 dark:border-gray-800 p-2 flex md:flex-col gap-1">
+      <Item icon="💬" label="Chats" />
+      <Item icon="⭐" label="Favourites" />
+      <Item icon="🗄" label="Archived" />
+      <Item icon="👤" label="Profile" />
+      <Item icon="⚙️" label="Settings" />
+      <Item icon="⎋" label="Logout" />
+    </nav>
+  );
+}
