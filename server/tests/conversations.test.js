@@ -1,7 +1,6 @@
-// Basic test for PATCH /api/conversations/:id/participant
-const request = require("supertest");
-const app = require("../app"); // Adjust if your Express app is exported elsewhere
-const db = require("../db"); // Adjust if your DB helper is elsewhere
+import request from "supertest";
+import app from "../index.js";
+// import db from "../db.js"; // Uncomment and fix if you need DB access
 
 describe("PATCH /api/conversations/:id/participant", () => {
   let conversationId;
