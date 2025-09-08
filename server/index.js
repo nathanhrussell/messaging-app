@@ -93,9 +93,11 @@ io.on("connection", (socket) => {
   try {
     await assertDbConnection();
     console.log("✅ Database connection OK");
-    server.listen(config.port, () => {
-      console.log(`🚀 Server listening on http://localhost:${config.port}`);
-    });
+    if (process.env.NODE_ENV !== "test") {
+      server.listen(config.port, () => {
+        console.log(`🚀 Server listening on http://localhost:${config.port}`);
+      });
+    }
   } catch (err) {
     console.error("❌ Failed to connect to database:", err.message);
     process.exit(1);
