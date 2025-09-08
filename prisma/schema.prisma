@@ -42,9 +42,16 @@ model Participant {
   id             String    @id @default(uuid())
   userId         String
   conversationId String
+
   isArchived     Boolean   @default(false)
   isFavourite    Boolean   @default(false)
+  isMuted        Boolean   @default(false)
+  isBlocked      Boolean   @default(false)
+
   lastReadAt     DateTime?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -58,10 +65,13 @@ model Message {
   conversationId String
   senderId       String
   body           String
+
   createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, createdAt])
+  @@index([senderId, createdAt])
 }
