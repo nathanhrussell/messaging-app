@@ -66,83 +66,54 @@ export async function createOrGetOneToOneConversation(userIdA, userIdB) {
 }
 
 export async function getConversationsForUser(userId, { limit = 20 } = {}) {
-  // 1) Fetch conversations + your participant row + partner (+ last message)
-  const convos = await prisma.conversation.findMany({
-    where: {
-      participants: { some: { userId } },
-    },
-    orderBy: [{ lastMessageAt: "desc" }, { updatedAt: "desc" }],
-    take: limit,
+  const rows = await prisma.conversation.findMany({
+    where: { participants: { some: { userId } } },
+    orderBy: [{ lastMessageAt: "desc" }, { createdAt: "desc" }],
+    take: Math.max(1, Math.min(100, Number(limit))),
     select: {
       id: true,
       lastMessageAt: true,
-      participants: {
-        select: {
-          userId: true,
-          isArchived: true,
-          isFavourite: true,
-          lastReadAt: true,
-          user: {
-            select: { id: true, displayName: true, avatarUrl: true },
-          },
-        },
-      },
+      createdAt: true,
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
         select: { id: true, body: true, createdAt: true, senderId: true },
       },
+      participants: {
+        select: {
+          userId: true,
+          isFavourite: true,
+          isArchived: true,
+          user: { select: { id: true, displayName: true, avatarUrl: true } },
+        },
+      },
     },
   });
 
-  // 2) Shape + compute unread counts (simple & clear; N+1 counts)
-  const items = await Promise.all(
-    convos.map(async (c) => {
-      const me = c.participants.find((p) => p.userId === userId);
-      const partner = c.participants.find((p) => p.userId !== userId);
+  return rows.map((c) => {
+    const lastMessage = c.messages[0] || null;
 
-      // last message
-      const lastMessage = c.messages[0] || null;
+    // current user’s row for flags
+    const mine = c.participants.find((p) => p.userId === userId) || {
+      isFavourite: false,
+      isArchived: false,
+    };
 
-      // unread: partner messages after my lastReadAt
-      const unreadCount = await prisma.message.count({
-        where: {
-          conversationId: c.id,
-          createdAt: {
-            gt: me?.lastReadAt ?? new Date(0),
-          },
-          senderId: {
-            not: userId,
-          },
-        },
-      });
+    // one-to-one partner (the other participant)
+    const other = c.participants.find((p) => p.userId !== userId)?.user || {
+      id: "",
+      displayName: "Unknown",
+      avatarUrl: null,
+    };
 
-      return {
-        id: c.id,
-        lastMessageAt: c.lastMessageAt,
-        partner: partner
-          ? {
-              id: partner.user.id,
-              displayName: partner.user.displayName,
-              avatarUrl: partner.user.avatarUrl,
-            }
-          : null,
-        lastMessage: lastMessage
-          ? {
-              id: lastMessage.id,
-              body: lastMessage.body,
-              createdAt: lastMessage.createdAt,
-              senderId: lastMessage.senderId,
-            }
-          : null,
-        unreadCount,
-        flags: {
-          isArchived: !!me?.isArchived,
-          isFavourite: !!me?.isFavourite,
-        },
-      };
-    })
-  );
-
-  return items;
+    return {
+      id: c.id,
+      lastMessage,
+      partner: other,
+      myParticipant: {
+        isFavourite: !!mine.isFavourite,
+        isArchived: !!mine.isArchived,
+      },
+    };
+  });
 }
