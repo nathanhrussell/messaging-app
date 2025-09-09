@@ -41,3 +41,19 @@ export async function getMessages(conversationId, { limit = 30, before } = {}) {
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
 }
+
+export async function sendMessage(conversationId, body) {
+  const url = `/api/conversations/${conversationId}/messages`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...authHeaders(),
+    },
+    credentials: USE_COOKIES ? "include" : "omit",
+    body: JSON.stringify({ body }),
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}

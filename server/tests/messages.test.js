@@ -41,3 +41,52 @@ describe("GET /api/conversations/:id/messages", () => {
     // TODO: Create a user who is not a participant and test
   });
 });
+
+describe("POST /api/conversations/:id/messages", () => {
+  let userToken;
+  let partnerId;
+  let conversationId;
+
+  async function getOrCreateUser(email, password, displayName) {
+    let res = await request(app).post("/api/auth/signup").send({ email, password, displayName });
+    if (res.status === 409) {
+      res = await request(app).post("/api/auth/login").send({ email, password });
+    }
+    return res.body;
+  }
+
+  beforeAll(async () => {
+    const user1 = await getOrCreateUser("msguser1@example.com", "testpassword", "Msg User 1");
+    userToken = user1.accessToken;
+    const user2 = await getOrCreateUser("msguser2@example.com", "testpassword", "Msg User 2");
+    partnerId = user2.user?.id || user2.id;
+    const convoRes = await request(app)
+      .post("/api/conversations")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ participantId: partnerId });
+    conversationId = convoRes.body.id;
+  });
+
+  it("sends a message and returns it with timestamp", async () => {
+    const res = await request(app)
+      .post(`/api/conversations/${conversationId}/messages`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ body: "Hello world!" });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.body).toBe("Hello world!");
+    expect(res.body.createdAt).toBeTruthy();
+    expect(res.body.senderId).toBeTruthy();
+  });
+
+  it("rejects empty message", async () => {
+    const res = await request(app)
+      .post(`/api/conversations/${conversationId}/messages`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ body: "" });
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("rejects if not a participant", async () => {
+    // TODO: Create a user who is not a participant and test
+  });
+});

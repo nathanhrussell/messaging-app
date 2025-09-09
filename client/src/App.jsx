@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { getConversations, getMessages } from "./lib/api.js";
+import { getConversations, getMessages, sendMessage } from "./lib/api.js";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatList from "./components/ChatList.jsx";
 import MessageList from "./components/MessageList.jsx";
+import MessageComposer from "./components/MessageComposer.jsx";
 
 export default function App() {
   const [convos, setConvos] = useState([]);
@@ -11,6 +12,7 @@ export default function App() {
   const [activeConvo, setActiveConvo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [sending, setSending] = useState(false);
 
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
@@ -55,6 +57,17 @@ export default function App() {
     };
   }, [activeConvo]);
 
+  const handleSendMessage = async (body) => {
+    if (!activeConvo) return;
+    setSending(true);
+    try {
+      const msg = await sendMessage(activeConvo.id, body);
+      setMessages((prev) => [...prev, msg]);
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen grid md:grid-cols-[5rem_22rem_1fr] bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       {/* Left: sidebar with icons + labels on xl */}
@@ -88,7 +101,10 @@ export default function App() {
               {messagesLoading ? (
                 <div className="text-gray-500 text-sm">Loading messages…</div>
               ) : (
-                <MessageList messages={messages} userId={userId} />
+                <>
+                  <MessageList messages={messages} userId={userId} />
+                  <MessageComposer onSend={handleSendMessage} disabled={sending} />
+                </>
               )}
             </section>
           </>
