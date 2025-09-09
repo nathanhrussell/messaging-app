@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getConversations, getMessages, refreshToken } from "./lib/api.js";
+import { getConversations, getMessages, refreshToken, setAccessToken } from "./lib/api.js";
 import { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatList from "./components/ChatList.jsx";
@@ -16,7 +16,9 @@ export default function App() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [user, setUser] = useState(null);
-  const [accessToken, setAccessToken] = useState(() => localStorage.getItem("accessToken") || "");
+  const [accessToken, setAccessTokenState] = useState(
+    () => localStorage.getItem("accessToken") || ""
+  );
   const [authLoading, setAuthLoading] = useState(true);
 
   // TODO: Replace with real user ID from auth context
@@ -74,13 +76,13 @@ export default function App() {
       try {
         const res = await refreshToken();
         if (res.accessToken) {
-          setAccessToken(res.accessToken);
+          setAccessTokenState(res.accessToken);
           localStorage.setItem("accessToken", res.accessToken);
           setUser(res.user || null);
         }
       } catch {
         setUser(null);
-        setAccessToken("");
+        setAccessTokenState("");
         localStorage.removeItem("accessToken");
       } finally {
         setAuthLoading(false);
@@ -95,7 +97,7 @@ export default function App() {
 
   const handleAuth = (res) => {
     setAccessToken(res.accessToken);
-    localStorage.setItem("accessToken", res.accessToken);
+    setAccessTokenState(res.accessToken); // ensure localStorage is updated for authHeaders
     setUser(res.user || null);
   };
 
