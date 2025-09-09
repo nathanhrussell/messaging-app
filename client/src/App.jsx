@@ -207,111 +207,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      {/* Sidebar */}
+    <div className="min-h-screen grid md:grid-cols-[5rem_1fr_22rem] bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      {/* Left: Navigation sidebar */}
       <Sidebar active={nav} onNavigate={handleNavigate} />
-      {/* Main content area */}
-      <main className="flex-1 p-8">
-        {nav === "chats" && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Chats</h2>
-              <button
-                className="bg-[#3B82F6] text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-600 transition"
-                onClick={() => setShowNewModal(true)}
-              >
-                + New
-              </button>
-            </div>
-            {filteredConvos.length === 0 ? (
-              <div className="text-gray-400 text-center py-8">No conversations</div>
-            ) : (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-                {filteredConvos.map((c) => (
-                  <li
-                    key={c.id}
-                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
-                    onClick={() => setActiveConvo(c)}
-                  >
-                    <img
-                      src={c.partner && c.partner.avatarUrl ? c.partner.avatarUrl : "/avatar.svg"}
-                      alt=""
-                      className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-[#111827] dark:text-[#F9FAFB] truncate">
-                          {c.partner.displayName}
-                        </span>
-                        {c.isFavourite && (
-                          <span title="Favourite" className="text-yellow-400">
-                            ★
-                          </span>
-                        )}
-                        {c.isArchived && (
-                          <span title="Archived" className="text-gray-400">
-                            ⧉
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {c.lastMessage ? (
-                          c.lastMessage.body
-                        ) : (
-                          <span className="italic">No messages yet</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      {c.unreadCount > 0 && (
-                        <span className="ml-2 bg-[#3B82F6] text-white rounded-full px-2 py-0.5 text-xs font-bold">
-                          {c.unreadCount}
-                        </span>
-                      )}
-                      <div className="flex gap-2 mt-2">
-                        <button
-                          type="button"
-                          title={c.isFavourite ? "Unfavourite" : "Favourite"}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavourite(c.id, c.isFavourite);
-                          }}
-                          className={`px-2 py-1 rounded text-sm ${c.isFavourite ? "bg-yellow-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
-                        >
-                          ★
-                        </button>
-                        <button
-                          type="button"
-                          title={c.isArchived ? "Unarchive" : "Archive"}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleArchived(c.id, c.isArchived);
-                          }}
-                          className={`px-2 py-1 rounded text-sm ${c.isArchived ? "bg-gray-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
-                        >
-                          ⧉
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <NewConversationModal
-              open={showNewModal}
-              onClose={() => setShowNewModal(false)}
-              onCreate={handleNewConversation}
-            />
-          </>
-        )}
-        {nav === "profile" && <div className="text-xl">Profile (coming soon)</div>}
-        {nav === "favourites" && <div className="text-xl">Favourites (see chats tab)</div>}
-        {nav === "archived" && <div className="text-xl">Archived (see chats tab)</div>}
-        {nav === "settings" && <div className="text-xl">Settings (coming soon)</div>}
-      </main>
 
-      {/* Right: chat window */}
-      <main className="p-6 overflow-y-auto">
+      {/* Center: Chat window (primary) */}
+      <main className="flex-1 p-8">
+        {/* Chat header + active conversation view */}
         {activeConvo ? (
           <>
             <header className="flex items-center gap-3 mb-4">
@@ -341,6 +243,99 @@ export default function App() {
           </>
         )}
       </main>
+
+      {/* Right: Conversation list and New Conversation modal */}
+      <aside className="w-full border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-[#071025] p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold">Chats</h2>
+          <button
+            className="bg-[#3B82F6] text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-600 transition"
+            onClick={() => setShowNewModal(true)}
+          >
+            + New
+          </button>
+        </div>
+        {filteredConvos.length === 0 ? (
+          <div className="text-gray-400 text-center py-8">No conversations</div>
+        ) : (
+          <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+            {filteredConvos.map((c) => (
+              <li
+                key={c.id}
+                className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
+                onClick={() => setActiveConvo(c)}
+              >
+                <img
+                  src={c.partner && c.partner.avatarUrl ? c.partner.avatarUrl : "/avatar.svg"}
+                  alt=""
+                  className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-[#111827] dark:text-[#F9FAFB] truncate">
+                      {c.partner && c.partner.displayName}
+                    </span>
+                    {c.isFavourite && (
+                      <span title="Favourite" className="text-yellow-400">
+                        ★
+                      </span>
+                    )}
+                    {c.isArchived && (
+                      <span title="Archived" className="text-gray-400">
+                        ⧉
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {c.lastMessage ? (
+                      c.lastMessage.body
+                    ) : (
+                      <span className="italic">No messages yet</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  {c.unreadCount > 0 && (
+                    <span className="ml-2 bg-[#3B82F6] text-white rounded-full px-2 py-0.5 text-xs font-bold">
+                      {c.unreadCount}
+                    </span>
+                  )}
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      title={c.isFavourite ? "Unfavourite" : "Favourite"}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavourite(c.id, c.isFavourite);
+                      }}
+                      className={`px-2 py-1 rounded text-sm ${c.isFavourite ? "bg-yellow-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
+                    >
+                      ★
+                    </button>
+                    <button
+                      type="button"
+                      title={c.isArchived ? "Unarchive" : "Archive"}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleArchived(c.id, c.isArchived);
+                      }}
+                      className={`px-2 py-1 rounded text-sm ${c.isArchived ? "bg-gray-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
+                    >
+                      ⧉
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <NewConversationModal
+          open={showNewModal}
+          onClose={() => setShowNewModal(false)}
+          onCreate={handleNewConversation}
+        />
+      </aside>
     </div>
   );
 }
