@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getConversations, createConversation, setAccessToken } from "./lib/api.js";
+import {
+  getConversations,
+  createConversation,
+  setAccessToken,
+  patchParticipantFlags,
+} from "./lib/api.js";
 import socketClient, { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
 import NewConversationModal from "./components/NewConversationModal.jsx";
@@ -118,6 +123,38 @@ export default function App() {
     });
   };
 
+  const toggleFavourite = async (conversationId, current) => {
+    try {
+      // optimistic update
+      setConvos((prev) =>
+        prev.map((c) => (c.id === conversationId ? { ...c, isFavourite: !current } : c))
+      );
+      await patchParticipantFlags(conversationId, { isFavourite: !current });
+    } catch (err) {
+      // revert on error
+      setConvos((prev) =>
+        prev.map((c) => (c.id === conversationId ? { ...c, isFavourite: current } : c))
+      );
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
+  };
+
+  const toggleArchived = async (conversationId, current) => {
+    try {
+      setConvos((prev) =>
+        prev.map((c) => (c.id === conversationId ? { ...c, isArchived: !current } : c))
+      );
+      await patchParticipantFlags(conversationId, { isArchived: !current });
+    } catch (err) {
+      setConvos((prev) =>
+        prev.map((c) => (c.id === conversationId ? { ...c, isArchived: current } : c))
+      );
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
+  };
+
   // Fetch conversations on login and after new convo
   useEffect(() => {
     if (accessToken) {
@@ -225,11 +262,37 @@ export default function App() {
                         )}
                       </div>
                     </div>
-                    {c.unreadCount > 0 && (
-                      <span className="ml-2 bg-[#3B82F6] text-white rounded-full px-2 py-0.5 text-xs font-bold">
-                        {c.unreadCount}
-                      </span>
-                    )}
+                    <div className="flex flex-col items-end gap-2">
+                      {c.unreadCount > 0 && (
+                        <span className="ml-2 bg-[#3B82F6] text-white rounded-full px-2 py-0.5 text-xs font-bold">
+                          {c.unreadCount}
+                        </span>
+                      )}
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="button"
+                          title={c.isFavourite ? "Unfavourite" : "Favourite"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavourite(c.id, c.isFavourite);
+                          }}
+                          className={`px-2 py-1 rounded text-sm ${c.isFavourite ? "bg-yellow-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
+                        >
+                          ★
+                        </button>
+                        <button
+                          type="button"
+                          title={c.isArchived ? "Unarchive" : "Archive"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleArchived(c.id, c.isArchived);
+                          }}
+                          className={`px-2 py-1 rounded text-sm ${c.isArchived ? "bg-gray-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
+                        >
+                          ⧉
+                        </button>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>
