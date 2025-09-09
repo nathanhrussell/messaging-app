@@ -27,6 +27,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [nav, setNav] = useState("chats");
   const [showNewModal, setShowNewModal] = useState(false);
+  const [error, setError] = useState("");
 
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
@@ -124,23 +125,32 @@ export default function App() {
   };
 
   const toggleFavourite = async (conversationId, current) => {
+    const conversation = convos.find((c) => c.id === conversationId);
+    if (conversation && conversation.isArchived && !current) {
+      setError("Cannot favourite an archived chat. Unarchive it first.");
+      return;
+    }
     try {
-      // optimistic update
       setConvos((prev) =>
         prev.map((c) => (c.id === conversationId ? { ...c, isFavourite: !current } : c))
       );
       await patchParticipantFlags(conversationId, { isFavourite: !current });
     } catch (err) {
-      // revert on error
       setConvos((prev) =>
         prev.map((c) => (c.id === conversationId ? { ...c, isFavourite: current } : c))
       );
+      setError("Failed to update favourite status.");
       // eslint-disable-next-line no-console
       console.error(err);
     }
   };
 
   const toggleArchived = async (conversationId, current) => {
+    const conversation = convos.find((c) => c.id === conversationId);
+    if (conversation && conversation.isFavourite && !current) {
+      setError("Cannot archive a favourited chat. Unfavourite it first.");
+      return;
+    }
     try {
       setConvos((prev) =>
         prev.map((c) => (c.id === conversationId ? { ...c, isArchived: !current } : c))
@@ -150,6 +160,7 @@ export default function App() {
       setConvos((prev) =>
         prev.map((c) => (c.id === conversationId ? { ...c, isArchived: current } : c))
       );
+      setError("Failed to update archived status.");
       // eslint-disable-next-line no-console
       console.error(err);
     }
@@ -218,6 +229,28 @@ export default function App() {
 
       {/* Center: Main content changes by nav */}
       <main className="flex-1 p-8">
+        {error && (
+          <div
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+            role="alert"
+          >
+            <span className="block sm:inline">{error}</span>
+            <span
+              className="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
+              onClick={() => setError("")}
+            >
+              <svg
+                className="fill-current h-6 w-6 text-red-500"
+                role="button"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+              >
+                <title>Close</title>
+                <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" />
+              </svg>
+            </span>
+          </div>
+        )}
         {activeConvo && nav === "chats" ? (
           <>
             <header className="flex items-center gap-3 mb-4">
