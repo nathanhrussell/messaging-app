@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
-import { getConversations } from "./lib/api.js";
+import { getConversations, getMessages } from "./lib/api.js";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatList from "./components/ChatList.jsx";
+import MessageList from "./components/MessageList.jsx";
 
 export default function App() {
   const [convos, setConvos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
   const [activeConvo, setActiveConvo] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+
+  // TODO: Replace with real user ID from auth context
+  const userId = "TODO_USER_ID";
 
   useEffect(() => {
     let alive = true;
@@ -26,6 +32,28 @@ export default function App() {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!activeConvo) {
+      setMessages([]);
+      return;
+    }
+    let alive = true;
+    setMessagesLoading(true);
+    (async () => {
+      try {
+        const msgs = await getMessages(activeConvo.id, { limit: 30 });
+        if (alive) setMessages(msgs);
+      } catch {
+        if (alive) setMessages([]);
+      } finally {
+        if (alive) setMessagesLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [activeConvo]);
 
   return (
     <div className="min-h-screen grid md:grid-cols-[5rem_22rem_1fr] bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
@@ -56,6 +84,13 @@ export default function App() {
               <h1 className="text-xl font-semibold">{activeConvo.partner.displayName}</h1>
             </header>
             <p className="text-sm text-gray-500">Conversation ID: {activeConvo.id}</p>
+            <section className="mt-6">
+              {messagesLoading ? (
+                <div className="text-gray-500 text-sm">Loading messages…</div>
+              ) : (
+                <MessageList messages={messages} userId={userId} />
+              )}
+            </section>
           </>
         ) : (
           <>

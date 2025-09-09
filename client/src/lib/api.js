@@ -29,3 +29,15 @@ export async function getConversations() {
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
 }
+
+export async function getMessages(conversationId, { limit = 30, before } = {}) {
+  const url = `/api/conversations/${conversationId}/messages?limit=${limit}${
+    before ? `&before=${encodeURIComponent(before)}` : ""
+  }`;
+  const res = await fetch(url, {
+    headers: { Accept: "application/json", ...authHeaders() },
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
