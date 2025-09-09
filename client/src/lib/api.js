@@ -88,3 +88,14 @@ export async function refreshToken() {
   if (!res.ok) throw new Error((await res.json()).error || res.statusText);
   return res.json();
 }
+
+export async function createConversation(participantEmail) {
+  const res = await fetch("/api/conversations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    body: JSON.stringify({ participantEmail }),
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json();
+}

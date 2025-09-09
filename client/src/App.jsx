@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { getConversations, getMessages, refreshToken, setAccessToken } from "./lib/api.js";
+import { getConversations, createConversation, setAccessToken } from "./lib/api.js";
 import { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
-import ChatList from "./components/ChatList.jsx";
+import NewConversationModal from "./components/NewConversationModal.jsx";
 import MessageList from "./components/MessageList.jsx";
 import MessageComposer from "./components/MessageComposer.jsx";
 import AuthForm from "./components/AuthForm.jsx";
@@ -20,6 +20,8 @@ export default function App() {
     () => localStorage.getItem("accessToken") || ""
   );
   const [authLoading, setAuthLoading] = useState(true);
+  const [nav, setNav] = useState("chats");
+  const [showNewModal, setShowNewModal] = useState(false);
 
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
@@ -113,6 +115,39 @@ export default function App() {
     });
   };
 
+  // Fetch conversations on login and after new convo
+  useEffect(() => {
+    if (accessToken) {
+      setAccessToken(accessToken); // always update localStorage for authHeaders
+      getConversations().then(setConvos).catch(() => setConvos([]));
+    }
+  }, [accessToken]);
+
+  // Filter conversations for main content
+  const filteredConvos = convos.filter((c) => {
+    if (nav === "favourites") return c.isFavourite;
+    if (nav === "archived") return c.isArchived;
+    return nav === "chats";
+  });
+
+  const handleNewConversation = async (email) => {
+    const convo = await createConversation(email);
+    setConvos((prev) => [convo, ...prev.filter((c) => c.id !== convo.id)]);
+    setShowNewModal(false);
+  };
+
+  const handleNavigate = (key) => {
+    if (key === "logout") {
+      setAccessToken("");
+      localStorage.removeItem("accessToken");
+      setUser(null);
+      setConvos([]);
+      setNav("chats");
+      return;
+    }
+    setNav(key);
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] text-[#3B82F6] text-xl">
@@ -126,20 +161,68 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen grid md:grid-cols-[5rem_22rem_1fr] bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      {/* Left: sidebar with icons + labels on xl */}
-      <Sidebar />
-
-      {/* Middle: chat list */}
-      <aside className="border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
-        <ChatList
-          items={convos}
-          isLoading={loading}
-          error={err}
-          onSelect={(c) => setActiveConvo(c)}
-          activeId={activeConvo?.id}
-        />
-      </aside>
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      {/* Sidebar */}
+      <Sidebar active={nav} onNavigate={handleNavigate} />
+      {/* Main content area */}
+      <main className="flex-1 p-8">
+        {nav === "chats" && (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Chats</h2>
+              <button
+                className="bg-[#3B82F6] text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-600 transition"
+                onClick={() => setShowNewModal(true)}
+              >
+                + New
+              </button>
+            </div>
+            {filteredConvos.length === 0 ? (
+              <div className="text-gray-400 text-center py-8">No conversations</div>
+            ) : (
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                {filteredConvos.map((c) => (
+                  <li
+                    key={c.id}
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? 'bg-blue-50 dark:bg-[#1F2937]' : ''}`}
+                    onClick={() => setActiveConvo(c)}
+                  >
+                    <img
+                      src={c.partner.avatarUrl || "/avatar.svg"}
+                      alt=""
+                      className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-[#111827] dark:text-[#F9FAFB] truncate">{c.partner.displayName}</span>
+                        {c.isFavourite && <span title="Favourite" className="text-yellow-400">★</span>}
+                        {c.isArchived && <span title="Archived" className="text-gray-400">⧉</span>}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {c.lastMessage ? c.lastMessage.body : <span className="italic">No messages yet</span>}
+                      </div>
+                    </div>
+                    {c.unreadCount > 0 && (
+                      <span className="ml-2 bg-[#3B82F6] text-white rounded-full px-2 py-0.5 text-xs font-bold">
+                        {c.unreadCount}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <NewConversationModal
+              open={showNewModal}
+              onClose={() => setShowNewModal(false)}
+              onCreate={handleNewConversation}
+            />
+          </>
+        )}
+        {nav === "profile" && <div className="text-xl">Profile (coming soon)</div>}
+        {nav === "favourites" && <div className="text-xl">Favourites (see chats tab)</div>}
+        {nav === "archived" && <div className="text-xl">Archived (see chats tab)</div>}
+        {nav === "settings" && <div className="text-xl">Settings (coming soon)</div>}
+      </main>
 
       {/* Right: chat window */}
       <main className="p-6 overflow-y-auto">

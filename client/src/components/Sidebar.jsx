@@ -1,38 +1,36 @@
 // Sidebar.jsx
+import React from "react";
 import PropTypes from "prop-types";
 
-function Item({ icon, label, onClick }) {
+const navItems = [
+  { key: "chats", label: "Chats", icon: "💬" },
+  { key: "favourites", label: "Favourites", icon: "★" },
+  { key: "archived", label: "Archived", icon: "⧉" },
+  { key: "profile", label: "Profile", icon: "👤" },
+  { key: "settings", label: "Settings", icon: "⚙️" },
+  { key: "logout", label: "Logout", icon: "🚪" },
+];
+
+export default function Sidebar({ active, onNavigate }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex md:flex-col items-center gap-2 px-4 py-3 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-    >
-      <span className="text-xl">{icon}</span>
-      <span className="hidden xl:block text-sm">{label}</span>
-    </button>
+    <aside className="flex flex-col h-full w-20 bg-white dark:bg-[#232b3a] border-r border-gray-200 dark:border-gray-800 py-4">
+      <div className="flex flex-col gap-4 items-center flex-1">
+        {navItems.map((item) => (
+          <button
+            key={item.key}
+            className={`flex flex-col items-center gap-1 px-2 py-2 rounded-xl w-16 transition text-sm font-medium ${active === item.key ? 'bg-[#3B82F6] text-white' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+            onClick={() => onNavigate(item.key)}
+          >
+            <span className="text-2xl">{item.icon}</span>
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </div>
+    </aside>
   );
 }
 
-Item.propTypes = {
-  icon: PropTypes.node.isRequired,
-  label: PropTypes.string.isRequired,
-  onClick: PropTypes.func,
+Sidebar.propTypes = {
+  active: PropTypes.string.isRequired,
+  onNavigate: PropTypes.func.isRequired,
 };
-
-Item.defaultProps = {
-  onClick: undefined,
-};
-
-export default function Sidebar() {
-  return (
-    <nav className="border-r border-gray-200 dark:border-gray-800 p-2 flex md:flex-col gap-1">
-      <Item icon="💬" label="Chats" />
-      <Item icon="⭐" label="Favourites" />
-      <Item icon="🗄" label="Archived" />
-      <Item icon="👤" label="Profile" />
-      <Item icon="⚙️" label="Settings" />
-      <Item icon="⎋" label="Logout" />
-    </nav>
-  );
-}
