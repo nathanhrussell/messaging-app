@@ -57,3 +57,34 @@ export async function sendMessage(conversationId, body) {
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
 }
+
+export async function signup(email, password, displayName) {
+  const res = await fetch("/api/auth/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ email, password, displayName }),
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json();
+}
+
+export async function login(email, password) {
+  const res = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ email, password }),
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json();
+}
+
+export async function refreshToken() {
+  const res = await fetch("/api/auth/refresh", {
+    method: "POST",
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json();
+}

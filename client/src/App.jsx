@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { getConversations, getMessages } from "./lib/api.js";
+import { getConversations, getMessages, refreshToken } from "./lib/api.js";
 import { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatList from "./components/ChatList.jsx";
 import MessageList from "./components/MessageList.jsx";
 import MessageComposer from "./components/MessageComposer.jsx";
+import AuthForm from "./components/AuthForm.jsx";
 
 export default function App() {
   const [convos, setConvos] = useState([]);
@@ -14,6 +15,9 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [user, setUser] = useState(null);
+  const [accessToken, setAccessToken] = useState(() => localStorage.getItem("accessToken") || "");
+  const [authLoading, setAuthLoading] = useState(true);
 
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
@@ -64,6 +68,37 @@ export default function App() {
     }
   }, [activeConvo]);
 
+  useEffect(() => {
+    async function tryRefresh() {
+      setAuthLoading(true);
+      try {
+        const res = await refreshToken();
+        if (res.accessToken) {
+          setAccessToken(res.accessToken);
+          localStorage.setItem("accessToken", res.accessToken);
+          setUser(res.user || null);
+        }
+      } catch {
+        setUser(null);
+        setAccessToken("");
+        localStorage.removeItem("accessToken");
+      } finally {
+        setAuthLoading(false);
+      }
+    }
+    if (!accessToken) {
+      tryRefresh();
+    } else {
+      setAuthLoading(false);
+    }
+  }, []);
+
+  const handleAuth = (res) => {
+    setAccessToken(res.accessToken);
+    localStorage.setItem("accessToken", res.accessToken);
+    setUser(res.user || null);
+  };
+
   const handleSendMessage = async (body) => {
     if (!activeConvo) return;
     setSending(true);
@@ -75,6 +110,18 @@ export default function App() {
       // Optionally handle error
     });
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] text-[#3B82F6] text-xl">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!accessToken) {
+    return <AuthForm onAuth={handleAuth} />;
+  }
 
   return (
     <div className="min-h-screen grid md:grid-cols-[5rem_22rem_1fr] bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
