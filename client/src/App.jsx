@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { getConversations, getMessages, sendMessage } from "./lib/api.js";
+import { getConversations, getMessages } from "./lib/api.js";
+import { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatList from "./components/ChatList.jsx";
 import MessageList from "./components/MessageList.jsx";
@@ -57,15 +58,22 @@ export default function App() {
     };
   }, [activeConvo]);
 
+  useEffect(() => {
+    if (activeConvo) {
+      joinConversation(activeConvo.id);
+    }
+  }, [activeConvo]);
+
   const handleSendMessage = async (body) => {
     if (!activeConvo) return;
     setSending(true);
-    try {
-      const msg = await sendMessage(activeConvo.id, body);
-      setMessages((prev) => [...prev, msg]);
-    } finally {
+    sendMessageSocket(activeConvo.id, body, (res) => {
       setSending(false);
-    }
+      if (res && res.ok && res.message) {
+        setMessages((prev) => [...prev, res.message]);
+      }
+      // Optionally handle error
+    });
   };
 
   return (
