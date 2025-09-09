@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getConversations, createConversation, setAccessToken } from "./lib/api.js";
-import { joinConversation, sendMessageSocket } from "./lib/socket.js";
+import socketClient, { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
 import NewConversationModal from "./components/NewConversationModal.jsx";
 import MessageList from "./components/MessageList.jsx";
@@ -72,19 +72,21 @@ export default function App() {
     }
   }, [activeConvo]);
 
+  // Silent refresh on mount
   useEffect(() => {
     async function tryRefresh() {
       setAuthLoading(true);
       try {
         const res = await refreshToken();
         if (res.accessToken) {
-          setAccessTokenState(res.accessToken);
+          setAccessToken(res.accessToken);
           localStorage.setItem("accessToken", res.accessToken);
           setUser(res.user || null);
+          socketClient.connectSocket();
         }
       } catch {
         setUser(null);
-        setAccessTokenState("");
+        setAccessToken("");
         localStorage.removeItem("accessToken");
       } finally {
         setAuthLoading(false);
@@ -93,9 +95,10 @@ export default function App() {
     if (!accessToken) {
       tryRefresh();
     } else {
+      socketClient.connectSocket();
       setAuthLoading(false);
     }
-  }, []);
+  }, [accessToken]);
 
   const handleAuth = (res) => {
     setAccessToken(res.accessToken);
@@ -132,20 +135,22 @@ export default function App() {
     return nav === "chats";
   });
 
-  const handleNewConversation = async (email) => {
-    const convo = await createConversation(email);
-    setConvos((prev) => [convo, ...prev.filter((c) => c.id !== convo.id)]);
+  const handleNewConversation = async (emailOrId) => {
+    const convo = await createConversation(emailOrId);
+    // refetch to ensure partner and lastMessage populated
+    const latest = await getConversations();
+    setConvos(latest);
     setShowNewModal(false);
   };
 
   const handleNavigate = (key) => {
     if (key === "logout") {
+      socketClient.disconnectSocket();
       setAccessToken("");
       localStorage.removeItem("accessToken");
       setUser(null);
       setConvos([]);
       setNav("chats");
-      setAccessToken("");
       window.location.reload();
       return;
     }
@@ -192,7 +197,7 @@ export default function App() {
                     onClick={() => setActiveConvo(c)}
                   >
                     <img
-                      src={c.partner.avatarUrl || "/avatar.svg"}
+                      src={c.partner && c.partner.avatarUrl ? c.partner.avatarUrl : "/avatar.svg"}
                       alt=""
                       className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
                     />

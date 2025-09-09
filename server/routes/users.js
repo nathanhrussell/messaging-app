@@ -120,4 +120,30 @@ router.post("/me/avatar", requireAuth, upload.single("avatar"), async (req, res)
   }
 });
 
+// GET /api/users/find?email=...
+router.get("/find", async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ error: "email is required" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.json({
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err);
+    return res.status(500).json({ error: "Failed to find user" });
+  }
+});
+
 export default router;
