@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { getConversations } from "../lib/api.js";
+import { findUserByEmail } from "../lib/api.js";
 
 export default function NewConversationModal({ open, onClose, onCreate }) {
   const [email, setEmail] = useState("");
@@ -12,7 +12,8 @@ export default function NewConversationModal({ open, onClose, onCreate }) {
     setError("");
     setLoading(true);
     try {
-      await onCreate(email);
+      const user = await findUserByEmail(email);
+      await onCreate(user.id);
       setEmail("");
       onClose();
     } catch (err) {
@@ -26,10 +27,14 @@ export default function NewConversationModal({ open, onClose, onCreate }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-[#232b3a] rounded-2xl shadow-lg p-8 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4 text-[#111827] dark:text-[#F9FAFB]">Start a new conversation</h2>
+        <h2 className="text-xl font-bold mb-4 text-[#111827] dark:text-[#F9FAFB]">
+          Start a new conversation
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="email">User email</label>
+            <label className="block text-sm font-medium mb-1" htmlFor="email">
+              User email
+            </label>
             <input
               className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:border-[#3B82F6] focus:outline-none bg-[#F9FAFB] dark:bg-[#232b3a] text-[#111827] dark:text-[#F9FAFB]"
               type="email"

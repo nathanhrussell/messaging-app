@@ -89,11 +89,20 @@ export async function refreshToken() {
   return res.json();
 }
 
-export async function createConversation(participantEmail) {
+export async function findUserByEmail(email) {
+  const res = await fetch(`/api/users/find?email=${encodeURIComponent(email)}`, {
+    headers: { Accept: "application/json", ...authHeaders() },
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json();
+}
+
+export async function createConversation(participantId) {
   const res = await fetch("/api/conversations", {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
-    body: JSON.stringify({ participantEmail }),
+    body: JSON.stringify({ participantId }),
     credentials: USE_COOKIES ? "include" : "omit",
   });
   if (!res.ok) throw new Error((await res.json()).error || res.statusText);

@@ -119,7 +119,9 @@ export default function App() {
   useEffect(() => {
     if (accessToken) {
       setAccessToken(accessToken); // always update localStorage for authHeaders
-      getConversations().then(setConvos).catch(() => setConvos([]));
+      getConversations()
+        .then(setConvos)
+        .catch(() => setConvos([]));
     }
   }, [accessToken]);
 
@@ -143,6 +145,8 @@ export default function App() {
       setUser(null);
       setConvos([]);
       setNav("chats");
+      setAccessToken("");
+      window.location.reload();
       return;
     }
     setNav(key);
@@ -184,7 +188,7 @@ export default function App() {
                 {filteredConvos.map((c) => (
                   <li
                     key={c.id}
-                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? 'bg-blue-50 dark:bg-[#1F2937]' : ''}`}
+                    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
                     onClick={() => setActiveConvo(c)}
                   >
                     <img
@@ -194,12 +198,26 @@ export default function App() {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-[#111827] dark:text-[#F9FAFB] truncate">{c.partner.displayName}</span>
-                        {c.isFavourite && <span title="Favourite" className="text-yellow-400">★</span>}
-                        {c.isArchived && <span title="Archived" className="text-gray-400">⧉</span>}
+                        <span className="font-semibold text-[#111827] dark:text-[#F9FAFB] truncate">
+                          {c.partner.displayName}
+                        </span>
+                        {c.isFavourite && (
+                          <span title="Favourite" className="text-yellow-400">
+                            ★
+                          </span>
+                        )}
+                        {c.isArchived && (
+                          <span title="Archived" className="text-gray-400">
+                            ⧉
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        {c.lastMessage ? c.lastMessage.body : <span className="italic">No messages yet</span>}
+                        {c.lastMessage ? (
+                          c.lastMessage.body
+                        ) : (
+                          <span className="italic">No messages yet</span>
+                        )}
                       </div>
                     </div>
                     {c.unreadCount > 0 && (

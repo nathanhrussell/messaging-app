@@ -18,7 +18,7 @@ export default function Sidebar({ active, onNavigate }) {
         {navItems.map((item) => (
           <button
             key={item.key}
-            className={`flex flex-col items-center gap-1 px-2 py-2 rounded-xl w-16 transition text-sm font-medium ${active === item.key ? 'bg-[#3B82F6] text-white' : 'text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+            className={`flex flex-col items-center gap-1 px-2 py-2 rounded-xl w-16 transition text-sm font-medium ${active === item.key ? "bg-[#3B82F6] text-white" : "text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"}`}
             onClick={() => onNavigate(item.key)}
           >
             <span className="text-2xl">{item.icon}</span>
