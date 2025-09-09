@@ -194,6 +194,11 @@ export default function App() {
     setNav(key);
   };
 
+  // Always show all conversations in the right column, filter by tab
+  const chatsConvos = convos.filter((c) => !c.isArchived);
+  const favouritesConvos = convos.filter((c) => c.isFavourite);
+  const archivedConvos = convos.filter((c) => c.isArchived);
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] text-[#3B82F6] text-xl">
@@ -211,10 +216,9 @@ export default function App() {
       {/* Left: Navigation sidebar */}
       <Sidebar active={nav} onNavigate={handleNavigate} />
 
-      {/* Center: Chat window (primary) */}
+      {/* Center: Main content changes by nav */}
       <main className="flex-1 p-8">
-        {/* Chat header + active conversation view */}
-        {activeConvo ? (
+        {activeConvo && nav === "chats" ? (
           <>
             <header className="flex items-center gap-3 mb-4">
               <img
@@ -236,15 +240,23 @@ export default function App() {
               )}
             </section>
           </>
+        ) : nav === "favourites" ? (
+          <div className="text-xl font-semibold mb-2">Favourites</div>
+        ) : nav === "archived" ? (
+          <div className="text-xl font-semibold mb-2">Archived</div>
+        ) : nav === "profile" ? (
+          <div className="text-xl font-semibold mb-2">Profile (coming soon)</div>
+        ) : nav === "settings" ? (
+          <div className="text-xl font-semibold mb-2">Settings (coming soon)</div>
         ) : (
           <>
             <h1 className="text-xl font-semibold mb-2">Welcome</h1>
-            <p className="text-sm text-gray-500">Select a conversation from the middle list.</p>
+            <p className="text-sm text-gray-500">Select a conversation from the right list.</p>
           </>
         )}
       </main>
 
-      {/* Right: Conversation list and New Conversation modal */}
+      {/* Right: Conversation list always visible */}
       <aside className="w-full border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-[#071025] p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">Chats</h2>
@@ -255,11 +267,162 @@ export default function App() {
             + New
           </button>
         </div>
-        {filteredConvos.length === 0 ? (
+        {/* Show correct list based on nav */}
+        {nav === "favourites" ? (
+          favouritesConvos.length === 0 ? (
+            <div className="text-gray-400 text-center py-8">No favourites</div>
+          ) : (
+            <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+              {favouritesConvos.map((c) => (
+                <li
+                  key={c.id}
+                  className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
+                  onClick={() => setActiveConvo(c)}
+                >
+                  <img
+                    src={c.partner && c.partner.avatarUrl ? c.partner.avatarUrl : "/avatar.svg"}
+                    alt=""
+                    className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-[#111827] dark:text-[#F9FAFB] truncate">
+                        {c.partner && c.partner.displayName}
+                      </span>
+                      {c.isFavourite && (
+                        <span title="Favourite" className="text-yellow-400">
+                          ★
+                        </span>
+                      )}
+                      {c.isArchived && (
+                        <span title="Archived" className="text-gray-400">
+                          ⧉
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {c.lastMessage ? (
+                        c.lastMessage.body
+                      ) : (
+                        <span className="italic">No messages yet</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    {c.unreadCount > 0 && (
+                      <span className="ml-2 bg-[#3B82F6] text-white rounded-full px-2 py-0.5 text-xs font-bold">
+                        {c.unreadCount}
+                      </span>
+                    )}
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        type="button"
+                        title={c.isFavourite ? "Unfavourite" : "Favourite"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavourite(c.id, c.isFavourite);
+                        }}
+                        className={`px-2 py-1 rounded text-sm ${c.isFavourite ? "bg-yellow-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
+                      >
+                        ★
+                      </button>
+                      <button
+                        type="button"
+                        title={c.isArchived ? "Unarchive" : "Archive"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleArchived(c.id, c.isArchived);
+                        }}
+                        className={`px-2 py-1 rounded text-sm ${c.isArchived ? "bg-gray-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
+                      >
+                        ⧉
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : nav === "archived" ? (
+          archivedConvos.length === 0 ? (
+            <div className="text-gray-400 text-center py-8">No archived</div>
+          ) : (
+            <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+              {archivedConvos.map((c) => (
+                <li
+                  key={c.id}
+                  className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
+                  onClick={() => setActiveConvo(c)}
+                >
+                  <img
+                    src={c.partner && c.partner.avatarUrl ? c.partner.avatarUrl : "/avatar.svg"}
+                    alt=""
+                    className="h-10 w-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-[#111827] dark:text-[#F9FAFB] truncate">
+                        {c.partner && c.partner.displayName}
+                      </span>
+                      {c.isFavourite && (
+                        <span title="Favourite" className="text-yellow-400">
+                          ★
+                        </span>
+                      )}
+                      {c.isArchived && (
+                        <span title="Archived" className="text-gray-400">
+                          ⧉
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {c.lastMessage ? (
+                        c.lastMessage.body
+                      ) : (
+                        <span className="italic">No messages yet</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    {c.unreadCount > 0 && (
+                      <span className="ml-2 bg-[#3B82F6] text-white rounded-full px-2 py-0.5 text-xs font-bold">
+                        {c.unreadCount}
+                      </span>
+                    )}
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        type="button"
+                        title={c.isFavourite ? "Unfavourite" : "Favourite"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavourite(c.id, c.isFavourite);
+                        }}
+                        className={`px-2 py-1 rounded text-sm ${c.isFavourite ? "bg-yellow-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
+                      >
+                        ★
+                      </button>
+                      <button
+                        type="button"
+                        title={c.isArchived ? "Unarchive" : "Archive"}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleArchived(c.id, c.isArchived);
+                        }}
+                        className={`px-2 py-1 rounded text-sm ${c.isArchived ? "bg-gray-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
+                      >
+                        ⧉
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : chatsConvos.length === 0 ? (
           <div className="text-gray-400 text-center py-8">No conversations</div>
         ) : (
           <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-            {filteredConvos.map((c) => (
+            {chatsConvos.map((c) => (
               <li
                 key={c.id}
                 className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
@@ -329,7 +492,6 @@ export default function App() {
             ))}
           </ul>
         )}
-
         <NewConversationModal
           open={showNewModal}
           onClose={() => setShowNewModal(false)}
