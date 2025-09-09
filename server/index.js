@@ -6,7 +6,6 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
-import { Server as SocketIOServer } from "socket.io";
 import usersRouter from "./routes/users.js";
 
 import config from "./config/index.js";
@@ -17,6 +16,7 @@ import healthRouter from "./routes/health.js";
 import authRouter from "./routes/auth.js";
 import conversationsRouter from "./routes/conversations.js";
 import authDebug from "./routes/authDebug.js";
+import { setupSocketIO } from "./socket/index.js";
 
 const app = express();
 
@@ -67,26 +67,7 @@ app.get("/db-health", async (_req, res) => {
 app.use(express.static("client"));
 
 const server = http.createServer(app);
-
-// --- Socket.io
-const io = new SocketIOServer(server, {
-  cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
-    credentials: true,
-  },
-});
-
-io.on("connection", (socket) => {
-  console.log("🔌 Socket connected:", socket.id);
-  socket.emit("server:welcome", { message: "Hello from server 👋" });
-  socket.on("client:ping", (payload) => {
-    console.log("Received client:ping", payload);
-    socket.emit("server:pong", { ts: Date.now() });
-  });
-  socket.on("disconnect", (reason) => {
-    console.log("Socket disconnected:", socket.id, reason);
-  });
-});
+setupSocketIO(server);
 
 // --- Boot + graceful shutdown
 (async () => {
