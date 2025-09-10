@@ -10,6 +10,7 @@ import socketClient, { joinConversation, sendMessageSocket } from "./lib/socket.
 import Sidebar from "./components/Sidebar.jsx";
 import NewConversationModal from "./components/NewConversationModal.jsx";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal.jsx";
+import DeleteResultModal from "./components/DeleteResultModal.jsx";
 import MessageList from "./components/MessageList.jsx";
 import MessageComposer from "./components/MessageComposer.jsx";
 import AuthForm from "./components/AuthForm.jsx";
@@ -32,6 +33,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [deleteResult, setDeleteResult] = useState({ open: false, type: "success", message: "" });
 
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
@@ -585,16 +587,26 @@ export default function App() {
               await deleteConversation(conversation.id);
               setConvos((prev) => prev.filter((x) => x.id !== conversation.id));
               if (activeConvo?.id === conversation.id) setActiveConvo(null);
+              setDeleteResult({ open: true, type: "success", message: "Conversation deleted" });
             } catch (err) {
               // eslint-disable-next-line no-console
               console.error("Failed to delete conversation", err);
-              setError("Could not delete conversation. Please try again.");
-              setTimeout(() => setError(""), 4000);
+              setDeleteResult({
+                open: true,
+                type: "error",
+                message: "Could not delete conversation. Please try again.",
+              });
             } finally {
               setShowDeleteModal(false);
               setPendingDelete(null);
             }
           }}
+        />
+        <DeleteResultModal
+          open={deleteResult.open}
+          type={deleteResult.type}
+          message={deleteResult.message}
+          onClose={() => setDeleteResult((r) => ({ ...r, open: false }))}
         />
       </aside>
     </div>
