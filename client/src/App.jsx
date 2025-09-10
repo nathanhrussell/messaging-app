@@ -30,7 +30,13 @@ export default function App() {
     () => localStorage.getItem("accessToken") || ""
   );
   const [authLoading, setAuthLoading] = useState(true);
-  const [nav, setNav] = useState("chats");
+  const [nav, setNav] = useState(() => localStorage.getItem("activeTab") || "chats");
+  // Persist nav (sidebar tab) to localStorage
+  useEffect(() => {
+    if (nav) {
+      localStorage.setItem("activeTab", nav);
+    }
+  }, [nav]);
   const [showNewModal, setShowNewModal] = useState(false);
   const [error, setError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -240,10 +246,12 @@ export default function App() {
       setUser(null);
       setConvos([]);
       setNav("chats");
+      localStorage.setItem("activeTab", "chats");
       window.location.reload();
       return;
     }
     setNav(key);
+    localStorage.setItem("activeTab", key);
   };
 
   // Always show all conversations in the right column, filter by tab
