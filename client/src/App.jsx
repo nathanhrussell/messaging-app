@@ -110,6 +110,8 @@ export default function App() {
     setAccessToken(res.accessToken);
     setAccessTokenState(res.accessToken); // ensure localStorage is updated for authHeaders
     setUser(res.user || null);
+    // Reconnect socket with new token after login
+    socketClient.connectSocket();
   };
 
   const handleSendMessage = async (body) => {
