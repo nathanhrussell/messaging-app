@@ -13,8 +13,11 @@ export default function ConversationItem({ convo, onClick, onDelete }) {
 
   const handleDelete = useCallback(
     async (e) => {
-      // require double-click to trigger: this handler is called from onDoubleClick
       e.stopPropagation();
+      if (typeof onDelete === "function") {
+        onDelete(convo);
+        return;
+      }
       try {
         await deleteConversation(id);
         if (typeof onDelete === "function") onDelete(id);
@@ -25,7 +28,7 @@ export default function ConversationItem({ convo, onClick, onDelete }) {
         // could add toast/alert here
       }
     },
-    [id, onDelete]
+    [id, onDelete, convo]
   );
 
   const handleKeyDown = useCallback(

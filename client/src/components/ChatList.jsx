@@ -91,22 +91,25 @@ export default function ChatList({ items, isLoading, error, onSelect, activeId, 
                   </button>
                   <button
                     type="button"
-                    title="Delete conversation (double-click to confirm)"
-                    onClick={(e) => e.stopPropagation()}
-                    onDoubleClick={async (e) => {
+                    title="Delete conversation"
+                    onClick={(e) => {
                       e.stopPropagation();
-                      try {
-                        await deleteConversation(c.id);
-                        if (typeof onDelete === "function") onDelete(c.id);
-                      } catch (err) {
-                        // minimal handling: show console and set updateError
-                        // eslint-disable-next-line no-console
-                        console.error("Failed to delete conversation", err);
-                        // show a transient error message
-                        // re-use setUpdateError in this scope via closure
-                        setUpdateError("Could not delete conversation. Please try again.");
-                        setTimeout(() => setUpdateError(""), 4000);
+                      if (typeof onDelete === "function") {
+                        onDelete(c);
+                        return;
                       }
+                      // fallback: perform immediate delete
+                      (async () => {
+                        try {
+                          await deleteConversation(c.id);
+                          if (typeof onDelete === "function") onDelete(c.id);
+                        } catch (err) {
+                          // eslint-disable-next-line no-console
+                          console.error("Failed to delete conversation", err);
+                          setUpdateError("Could not delete conversation. Please try again.");
+                          setTimeout(() => setUpdateError(""), 4000);
+                        }
+                      })();
                     }}
                     className="px-2 text-sm text-gray-400 hover:text-red-500"
                   >

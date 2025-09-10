@@ -9,6 +9,7 @@ import {
 import socketClient, { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
 import NewConversationModal from "./components/NewConversationModal.jsx";
+import ConfirmDeleteModal from "./components/ConfirmDeleteModal.jsx";
 import MessageList from "./components/MessageList.jsx";
 import MessageComposer from "./components/MessageComposer.jsx";
 import AuthForm from "./components/AuthForm.jsx";
@@ -29,6 +30,8 @@ export default function App() {
   const [nav, setNav] = useState("chats");
   const [showNewModal, setShowNewModal] = useState(false);
   const [error, setError] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
@@ -375,20 +378,11 @@ export default function App() {
                       </button>
                       <button
                         type="button"
-                        title="Delete conversation (double-click to confirm)"
-                        onClick={(e) => e.stopPropagation()}
-                        onDoubleClick={async (e) => {
+                        title="Delete conversation"
+                        onClick={(e) => {
                           e.stopPropagation();
-                          try {
-                            await deleteConversation(c.id);
-                            setConvos((prev) => prev.filter((x) => x.id !== c.id));
-                            if (activeConvo?.id === c.id) setActiveConvo(null);
-                          } catch (err) {
-                            // eslint-disable-next-line no-console
-                            console.error("Failed to delete conversation", err);
-                            setError("Could not delete conversation. Please try again.");
-                            setTimeout(() => setError(""), 4000);
-                          }
+                          setPendingDelete(c);
+                          setShowDeleteModal(true);
                         }}
                         className="px-2 py-1 rounded text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 hover:text-red-500"
                       >
@@ -471,20 +465,11 @@ export default function App() {
                       </button>
                       <button
                         type="button"
-                        title="Delete conversation (double-click to confirm)"
-                        onClick={(e) => e.stopPropagation()}
-                        onDoubleClick={async (e) => {
+                        title="Delete conversation"
+                        onClick={(e) => {
                           e.stopPropagation();
-                          try {
-                            await deleteConversation(c.id);
-                            setConvos((prev) => prev.filter((x) => x.id !== c.id));
-                            if (activeConvo?.id === c.id) setActiveConvo(null);
-                          } catch (err) {
-                            // eslint-disable-next-line no-console
-                            console.error("Failed to delete conversation", err);
-                            setError("Could not delete conversation. Please try again.");
-                            setTimeout(() => setError(""), 4000);
-                          }
+                          setPendingDelete(c);
+                          setShowDeleteModal(true);
                         }}
                         className="px-2 py-1 rounded text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 hover:text-red-500"
                       >
@@ -566,20 +551,11 @@ export default function App() {
                     </button>
                     <button
                       type="button"
-                      title="Delete conversation (double-click to confirm)"
-                      onClick={(e) => e.stopPropagation()}
-                      onDoubleClick={async (e) => {
+                      title="Delete conversation"
+                      onClick={(e) => {
                         e.stopPropagation();
-                        try {
-                          await deleteConversation(c.id);
-                          setConvos((prev) => prev.filter((x) => x.id !== c.id));
-                          if (activeConvo?.id === c.id) setActiveConvo(null);
-                        } catch (err) {
-                          // eslint-disable-next-line no-console
-                          console.error("Failed to delete conversation", err);
-                          setError("Could not delete conversation. Please try again.");
-                          setTimeout(() => setError(""), 4000);
-                        }
+                        setPendingDelete(c);
+                        setShowDeleteModal(true);
                       }}
                       className="px-2 py-1 rounded text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 hover:text-red-500"
                     >
@@ -595,6 +571,30 @@ export default function App() {
           open={showNewModal}
           onClose={() => setShowNewModal(false)}
           onCreate={handleNewConversation}
+        />
+        <ConfirmDeleteModal
+          open={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setPendingDelete(null);
+          }}
+          conversation={pendingDelete}
+          onConfirm={async (conversation) => {
+            if (!conversation) return;
+            try {
+              await deleteConversation(conversation.id);
+              setConvos((prev) => prev.filter((x) => x.id !== conversation.id));
+              if (activeConvo?.id === conversation.id) setActiveConvo(null);
+            } catch (err) {
+              // eslint-disable-next-line no-console
+              console.error("Failed to delete conversation", err);
+              setError("Could not delete conversation. Please try again.");
+              setTimeout(() => setError(""), 4000);
+            } finally {
+              setShowDeleteModal(false);
+              setPendingDelete(null);
+            }
+          }}
         />
       </aside>
     </div>
