@@ -108,3 +108,16 @@ export async function createConversation(participantId) {
   if (!res.ok) throw new Error((await res.json()).error || res.statusText);
   return res.json();
 }
+
+export async function deleteConversation(conversationId) {
+  if (!conversationId || typeof conversationId !== "string") {
+    throw new Error("conversationId is required and must be a string");
+  }
+  const res = await fetch(`/api/conversations/${conversationId}`, {
+    method: "DELETE",
+    headers: { Accept: "application/json", ...authHeaders() },
+    credentials: USE_COOKIES ? "include" : "same-origin",
+  });
+  if (!res.ok) throw new Error((await res.json()).error || `${res.status} ${res.statusText}`);
+  return res.json();
+}
