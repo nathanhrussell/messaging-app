@@ -5,8 +5,12 @@ import {
   getConversationsForUser,
 } from "../services/conversations.js";
 import prisma from "../db/prisma.js";
+import messagesRouter from "./messages.js"; // ← Add this import
 
 const router = express.Router();
+
+// ← Add this line to include the messages routes
+router.use("/", messagesRouter);
 
 // DELETE /api/conversations/:id
 router.delete("/:id", requireAuth, async (req, res) => {

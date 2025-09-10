@@ -5,6 +5,7 @@ import {
   setAccessToken,
   patchParticipantFlags,
   deleteConversation,
+  getMessages,
 } from "./lib/api.js";
 import socketClient, { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
@@ -19,6 +20,7 @@ export default function App() {
   const [convos, setConvos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  // Only store the ID initially, but don't set activeConvo to a partial object
   const [activeConvo, setActiveConvo] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
@@ -37,6 +39,26 @@ export default function App() {
 
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
+
+  // Restore active conversation from localStorage on mount, after conversations are loaded
+  useEffect(() => {
+    if (!loading && convos.length > 0) {
+      const savedId = localStorage.getItem("activeConvoId");
+      if (savedId) {
+        const found = convos.find((c) => c.id === savedId);
+        if (found) setActiveConvo(found);
+      }
+    }
+  }, [loading, convos]);
+
+  // Persist activeConvoId to localStorage
+  useEffect(() => {
+    if (activeConvo && activeConvo.id) {
+      localStorage.setItem("activeConvoId", activeConvo.id);
+    } else {
+      localStorage.removeItem("activeConvoId");
+    }
+  }, [activeConvo]);
 
   useEffect(() => {
     let alive = true;
@@ -61,18 +83,29 @@ export default function App() {
       setMessages([]);
       return;
     }
+
+    console.log("Loading messages for conversation:", activeConvo.id);
     let alive = true;
     setMessagesLoading(true);
+
     (async () => {
       try {
+        console.log("Calling getMessages with:", activeConvo.id);
         const msgs = await getMessages(activeConvo.id, { limit: 30 });
-        if (alive) setMessages(msgs);
-      } catch {
+        console.log("getMessages returned:", msgs);
+
+        if (alive) {
+          setMessages(msgs);
+          console.log("Messages set to:", msgs);
+        }
+      } catch (error) {
+        console.error("Error loading messages:", error);
         if (alive) setMessages([]);
       } finally {
         if (alive) setMessagesLoading(false);
       }
     })();
+
     return () => {
       alive = false;
     };
@@ -263,11 +296,17 @@ export default function App() {
           <>
             <header className="flex items-center gap-3 mb-4">
               <img
-                src={activeConvo.partner.avatarUrl || "/avatar.svg"}
+                src={
+                  activeConvo.partner && activeConvo.partner.avatarUrl
+                    ? activeConvo.partner.avatarUrl
+                    : "/avatar.svg"
+                }
                 alt=""
                 className="h-10 w-10 rounded-full object-cover"
               />
-              <h1 className="text-xl font-semibold">{activeConvo.partner.displayName}</h1>
+              <h1 className="text-xl font-semibold">
+                {activeConvo.partner ? activeConvo.partner.displayName : ""}
+              </h1>
             </header>
             <p className="text-sm text-gray-500">Conversation ID: {activeConvo.id}</p>
             <section className="mt-6">
