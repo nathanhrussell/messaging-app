@@ -8,11 +8,7 @@ export default function ConfirmDeleteModal({ open, onClose, onConfirm, conversat
       <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-2xl shadow-lg p-6 w-full max-w-sm">
         <h3 className="text-lg font-bold mb-2 text-red-800 dark:text-red-200">Confirm delete</h3>
         <p className="text-sm text-red-700 dark:text-red-200 mb-4">
-          Are you sure you want to delete the conversation
-          <span className="font-medium mx-1 text-red-800 dark:text-red-100">
-            {conversation?.partner?.displayName || conversation?.id}
-          </span>
-          ? This action cannot be undone.
+          Are you sure you want to delete this conversation? This action cannot be undone.
         </p>
         <div className="flex justify-end gap-2">
           <button
