@@ -8,6 +8,27 @@ import prisma from "../db/prisma.js";
 
 const router = express.Router();
 
+// DELETE /api/conversations/:id
+router.delete("/:id", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    // Only allow delete if user is a participant
+    const convo = await prisma.conversation.findUnique({
+      where: { id },
+      include: { participants: true },
+    });
+    if (!convo) return res.status(404).json({ error: "Conversation not found" });
+    const isParticipant = convo.participants.some((p) => p.userId === userId);
+    if (!isParticipant) return res.status(403).json({ error: "Forbidden" });
+    await prisma.conversation.delete({ where: { id } });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to delete conversation" });
+  }
+});
+
 /**
  * POST /api/conversations
  * Body: { participantId: string }
