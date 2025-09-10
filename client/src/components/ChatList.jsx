@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
-import { patchParticipantFlags } from "../lib/api.js";
+import { patchParticipantFlags, deleteConversation } from "../lib/api.js";
 
-export default function ChatList({ items, isLoading, error, onSelect, activeId }) {
+export default function ChatList({ items, isLoading, error, onSelect, activeId, onDelete }) {
   const [, setTick] = useState(0); // force re-render after optimistic mutation
   const [updateError, setUpdateError] = useState("");
   const force = () => setTick((t) => t + 1);
@@ -46,9 +46,16 @@ export default function ChatList({ items, isLoading, error, onSelect, activeId }
 
           return (
             <li key={c.id}>
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => onSelect(c)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onSelect(c);
+                  }
+                }}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-900 ${
                   isActive ? "bg-gray-100 dark:bg-gray-900" : ""
                 } ${arch ? "opacity-60" : ""}`}
@@ -82,8 +89,31 @@ export default function ChatList({ items, isLoading, error, onSelect, activeId }
                   >
                     🗄
                   </button>
+                  <button
+                    type="button"
+                    title="Delete conversation (double-click to confirm)"
+                    onClick={(e) => e.stopPropagation()}
+                    onDoubleClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        await deleteConversation(c.id);
+                        if (typeof onDelete === "function") onDelete(c.id);
+                      } catch (err) {
+                        // minimal handling: show console and set updateError
+                        // eslint-disable-next-line no-console
+                        console.error("Failed to delete conversation", err);
+                        // show a transient error message
+                        // re-use setUpdateError in this scope via closure
+                        setUpdateError("Could not delete conversation. Please try again.");
+                        setTimeout(() => setUpdateError(""), 4000);
+                      }
+                    }}
+                    className="px-2 text-sm text-gray-400 hover:text-red-500"
+                  >
+                    🗑
+                  </button>
                 </div>
-              </button>
+              </div>
             </li>
           );
         })}
@@ -111,6 +141,7 @@ ChatList.propTypes = {
   error: PropTypes.string,
   onSelect: PropTypes.func.isRequired,
   activeId: PropTypes.string,
+  onDelete: PropTypes.func,
 };
 
 ChatList.defaultProps = {

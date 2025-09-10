@@ -4,6 +4,7 @@ import {
   createConversation,
   setAccessToken,
   patchParticipantFlags,
+  deleteConversation,
 } from "./lib/api.js";
 import socketClient, { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
@@ -372,6 +373,27 @@ export default function App() {
                       >
                         ⧉
                       </button>
+                      <button
+                        type="button"
+                        title="Delete conversation (double-click to confirm)"
+                        onClick={(e) => e.stopPropagation()}
+                        onDoubleClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            await deleteConversation(c.id);
+                            setConvos((prev) => prev.filter((x) => x.id !== c.id));
+                            if (activeConvo?.id === c.id) setActiveConvo(null);
+                          } catch (err) {
+                            // eslint-disable-next-line no-console
+                            console.error("Failed to delete conversation", err);
+                            setError("Could not delete conversation. Please try again.");
+                            setTimeout(() => setError(""), 4000);
+                          }
+                        }}
+                        className="px-2 py-1 rounded text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 hover:text-red-500"
+                      >
+                        🗑
+                      </button>
                     </div>
                   </div>
                 </li>
@@ -447,6 +469,27 @@ export default function App() {
                       >
                         ⧉
                       </button>
+                      <button
+                        type="button"
+                        title="Delete conversation (double-click to confirm)"
+                        onClick={(e) => e.stopPropagation()}
+                        onDoubleClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            await deleteConversation(c.id);
+                            setConvos((prev) => prev.filter((x) => x.id !== c.id));
+                            if (activeConvo?.id === c.id) setActiveConvo(null);
+                          } catch (err) {
+                            // eslint-disable-next-line no-console
+                            console.error("Failed to delete conversation", err);
+                            setError("Could not delete conversation. Please try again.");
+                            setTimeout(() => setError(""), 4000);
+                          }
+                        }}
+                        className="px-2 py-1 rounded text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 hover:text-red-500"
+                      >
+                        🗑
+                      </button>
                     </div>
                   </div>
                 </li>
@@ -520,6 +563,27 @@ export default function App() {
                       className={`px-2 py-1 rounded text-sm ${c.isArchived ? "bg-gray-400 text-white" : "bg-gray-100 dark:bg-gray-800 text-gray-600"}`}
                     >
                       ⧉
+                    </button>
+                    <button
+                      type="button"
+                      title="Delete conversation (double-click to confirm)"
+                      onClick={(e) => e.stopPropagation()}
+                      onDoubleClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await deleteConversation(c.id);
+                          setConvos((prev) => prev.filter((x) => x.id !== c.id));
+                          if (activeConvo?.id === c.id) setActiveConvo(null);
+                        } catch (err) {
+                          // eslint-disable-next-line no-console
+                          console.error("Failed to delete conversation", err);
+                          setError("Could not delete conversation. Please try again.");
+                          setTimeout(() => setError(""), 4000);
+                        }
+                      }}
+                      className="px-2 py-1 rounded text-sm bg-gray-100 dark:bg-gray-800 text-gray-600 hover:text-red-500"
+                    >
+                      🗑
                     </button>
                   </div>
                 </div>
