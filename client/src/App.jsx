@@ -46,16 +46,31 @@ export default function App() {
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
 
-  // Restore active conversation from localStorage on mount, after conversations are loaded
+  // Restore active conversation from localStorage on mount, after conversations are loaded, but only if nav is 'chats'
   useEffect(() => {
-    if (!loading && convos.length > 0) {
+    if (!loading && convos.length > 0 && nav === "chats") {
       const savedId = localStorage.getItem("activeConvoId");
       if (savedId) {
         const found = convos.find((c) => c.id === savedId);
         if (found) setActiveConvo(found);
       }
     }
-  }, [loading, convos]);
+    // If not on chats tab, clear activeConvo
+    if (nav !== "chats") {
+      setActiveConvo(null);
+    }
+  }, [loading, convos, nav]);
+
+  // Immediately set a minimal activeConvo from localStorage when on the chats tab
+  // This ensures the chat view appears right away after refresh and messages begin loading.
+  useEffect(() => {
+    if (nav !== "chats") return;
+    const savedId = localStorage.getItem("activeConvoId");
+    if (savedId && !activeConvo) {
+      // set a shallow object with only id so message fetching and joinConversation can run
+      setActiveConvo({ id: savedId });
+    }
+  }, [nav, activeConvo]);
 
   // Persist activeConvoId to localStorage
   useEffect(() => {
@@ -122,6 +137,19 @@ export default function App() {
       joinConversation(activeConvo.id);
     }
   }, [activeConvo]);
+
+  // Scroll active conversation into view when it's selected/restored and chats tab is visible
+  useEffect(() => {
+    if (nav !== "chats" || !activeConvo || !activeConvo.id) return;
+    // Delay to allow DOM to render the list
+    const t = setTimeout(() => {
+      const el = document.getElementById(`convo-${activeConvo.id}`);
+      if (el && typeof el.scrollIntoView === "function") {
+        el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    }, 100);
+    return () => clearTimeout(t);
+  }, [activeConvo, nav]);
 
   // Silent refresh on mount
   useEffect(() => {
@@ -339,7 +367,7 @@ export default function App() {
         ) : (
           <>
             <h1 className="text-xl font-semibold mb-2">Welcome</h1>
-            <p className="text-sm text-gray-500">Select a conversation from the right list.</p>
+            <p className="text-sm text-gray-500">Select a conversation from the list.</p>
           </>
         )}
       </main>
@@ -363,6 +391,7 @@ export default function App() {
             <ul className="divide-y divide-gray-100 dark:divide-gray-800">
               {favouritesConvos.map((c) => (
                 <li
+                  id={`convo-${c.id}`}
                   key={c.id}
                   className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
                   onClick={() => setActiveConvo(c)}
@@ -450,6 +479,7 @@ export default function App() {
             <ul className="divide-y divide-gray-100 dark:divide-gray-800">
               {archivedConvos.map((c) => (
                 <li
+                  id={`convo-${c.id}`}
                   key={c.id}
                   className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
                   onClick={() => setActiveConvo(c)}
@@ -536,6 +566,7 @@ export default function App() {
           <ul className="divide-y divide-gray-100 dark:divide-gray-800">
             {chatsConvos.map((c) => (
               <li
+                id={`convo-${c.id}`}
                 key={c.id}
                 className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
                 onClick={() => setActiveConvo(c)}
