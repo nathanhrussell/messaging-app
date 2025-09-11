@@ -54,6 +54,8 @@ router.get("/me", requireAuth, async (req, res) => {
       },
     });
     if (!user) return res.status(404).json({ error: "User not found" });
+    // ensure client always receives a usable avatar URL
+    if (!user.avatarUrl) user.avatarUrl = "/avatar.svg";
     return res.json(user);
   } catch {
     return res.status(500).json({ error: "Failed to fetch user" });
@@ -164,7 +166,7 @@ router.get("/find", async (req, res) => {
       id: user.id,
       email: user.email,
       displayName: user.displayName,
-      avatarUrl: user.avatarUrl,
+      avatarUrl: user.avatarUrl || "/avatar.svg",
     });
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -190,6 +192,7 @@ router.get("/:id", async (req, res) => {
       },
     });
     if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user.avatarUrl) user.avatarUrl = "/avatar.svg";
     return res.json(user);
   } catch (err) {
     // eslint-disable-next-line no-console

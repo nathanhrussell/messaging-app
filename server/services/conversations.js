@@ -106,6 +106,8 @@ export async function getConversationsForUser(userId, { limit = 20 } = {}) {
       avatarUrl: null,
     };
 
+    if (!other.avatarUrl) other.avatarUrl = "/avatar.svg";
+
     return {
       id: c.id,
       lastMessage,
