@@ -23,7 +23,9 @@ export async function getMessagesForConversation(
 
   const messages = await prisma.message.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    orderBy: {
+      createdAt: "asc",
+    },
     take: Math.max(1, Math.min(100, Number(limit))),
     select: {
       id: true,
