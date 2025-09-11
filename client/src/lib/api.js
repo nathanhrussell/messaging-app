@@ -98,6 +98,39 @@ export async function findUserByEmail(email) {
   return res.json();
 }
 
+export async function getMe() {
+  const res = await fetch(`/api/users/me`, {
+    headers: { Accept: "application/json", ...authHeaders() },
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json();
+}
+
+export async function patchMe(updates) {
+  const res = await fetch(`/api/users/me`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
+    credentials: USE_COOKIES ? "include" : "omit",
+    body: JSON.stringify(updates),
+  });
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json();
+}
+
+export async function uploadAvatar(file) {
+  const fd = new FormData();
+  fd.append("avatar", file);
+  const res = await fetch(`/api/users/me/avatar`, {
+    method: "POST",
+    body: fd,
+    headers: { ...authHeaders() },
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json();
+}
+
 export async function createConversation(participantId) {
   const res = await fetch("/api/conversations", {
     method: "POST",
