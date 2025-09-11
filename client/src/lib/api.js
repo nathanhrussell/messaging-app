@@ -98,6 +98,15 @@ export async function findUserByEmail(email) {
   return res.json();
 }
 
+export async function getUser(id) {
+  const res = await fetch(`/api/users/${encodeURIComponent(id)}`, {
+    headers: { Accept: "application/json", ...authHeaders() },
+    credentials: USE_COOKIES ? "include" : "omit",
+  });
+  if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+  return res.json();
+}
+
 export async function getMe() {
   const res = await fetch(`/api/users/me`, {
     headers: { Accept: "application/json", ...authHeaders() },

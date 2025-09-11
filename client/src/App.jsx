@@ -6,6 +6,7 @@ import {
   patchParticipantFlags,
   deleteConversation,
   getMessages,
+  getUser,
 } from "./lib/api.js";
 import socketClient, { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
@@ -45,6 +46,7 @@ export default function App() {
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleteResult, setDeleteResult] = useState({ open: false, type: "success", message: "" });
   const [showUserModal, setShowUserModal] = useState(false);
+  const [modalUser, setModalUser] = useState(null);
 
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
@@ -345,12 +347,28 @@ export default function App() {
               />
               <h1 className="text-xl font-semibold">
                 {activeConvo.partner ? (
-                  // make display name clickable to open profile modal
+                  // clickable link-like name: open modal and fetch full profile
                   <button
                     type="button"
-                    onClick={() => setShowUserModal(true)}
-                    className="text-left"
+                    onClick={async () => {
+                      const p = activeConvo.partner;
+                      if (!p) return;
+                      // optimistically show minimal partner info immediately
+                      setModalUser(p);
+                      setShowUserModal(true);
+                      try {
+                        const full = await getUser(p.id);
+                        setModalUser(full);
+                      } catch (err) {
+                        // keep optimistic data and surface an error
+                        setError((e) => e || "Could not load full profile");
+                        // eslint-disable-next-line no-console
+                        console.error("Failed to fetch full profile", err);
+                      }
+                    }}
+                    className="text-blue-600 hover:underline hover:text-blue-800 cursor-pointer focus:outline-none"
                     aria-label={`Open profile for ${activeConvo.partner.displayName}`}
+                    title={`View ${activeConvo.partner.displayName}'s profile`}
                   >
                     {activeConvo.partner.displayName}
                   </button>
@@ -702,9 +720,12 @@ export default function App() {
           onClose={() => setDeleteResult((r) => ({ ...r, open: false }))}
         />
         <UserProfileModal
-          open={showUserModal && !!activeConvo?.partner}
-          onClose={() => setShowUserModal(false)}
-          user={activeConvo?.partner}
+          open={showUserModal && !!modalUser}
+          onClose={() => {
+            setShowUserModal(false);
+            setModalUser(null);
+          }}
+          user={modalUser}
         />
       </aside>
     </div>

@@ -173,4 +173,29 @@ router.get("/find", async (req, res) => {
   }
 });
 
+// GET /api/users/:id  (public profile)
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: "id is required" });
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        displayName: true,
+        avatarUrl: true,
+        tagline: true,
+        bio: true,
+        createdAt: true,
+      },
+    });
+    if (!user) return res.status(404).json({ error: "User not found" });
+    return res.json(user);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(err);
+    return res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
 export default router;
