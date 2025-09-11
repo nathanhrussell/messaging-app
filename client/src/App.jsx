@@ -48,8 +48,8 @@ export default function App() {
   const [showUserModal, setShowUserModal] = useState(false);
   const [modalUser, setModalUser] = useState(null);
 
-  // TODO: Replace with real user ID from auth context
-  const userId = "TODO_USER_ID";
+  // Use the authenticated user's id for message ownership checks
+  const userId = user?.id || "";
 
   // Restore active conversation from localStorage on mount, after conversations are loaded, but only if nav is 'chats'
   useEffect(() => {

@@ -7,14 +7,11 @@ export default function MessageList({ messages, userId }) {
   return (
     <ul className="space-y-2">
       {messages.map((m) => (
-        <li
-          key={m.id}
-          className={`flex ${m.senderId === userId ? "justify-end" : "justify-start"}`}
-        >
+        <li key={m.id} className="flex justify-start">
           <div
             className={`px-3 py-2 rounded-lg ${
               m.senderId === userId
-                ? "bg-blue-600 text-white"
+                ? "bg-[#0B93F6] text-white"
                 : "bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             }`}
           >
