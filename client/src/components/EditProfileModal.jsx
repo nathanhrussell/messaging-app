@@ -7,6 +7,7 @@ export default function EditProfileModal({ open, onClose, user, onSave, onUpload
   const [bio, setBio] = useState(user?.bio || "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null);
 
   // sync when user changes
   if (open && user && displayName !== (user.displayName || "")) {
@@ -30,6 +31,7 @@ export default function EditProfileModal({ open, onClose, user, onSave, onUpload
   const handleFile = async (e) => {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
+    setAvatarFile(f);
     try {
       await onUpload(f);
     } catch (err) {
@@ -72,7 +74,37 @@ export default function EditProfileModal({ open, onClose, user, onSave, onUpload
 
           <div>
             <label className="block text-sm font-medium mb-1">Avatar</label>
-            <input type="file" accept="image/*" onChange={handleFile} />
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <label
+                htmlFor="avatar"
+                style={{
+                  display: "inline-block",
+                  padding: "0.5em 1.5em",
+                  background: "#2563eb",
+                  color: "white",
+                  borderRadius: "0.375rem",
+                  cursor: "pointer",
+                  fontWeight: 500,
+                  fontSize: "1rem",
+                  transition: "background 0.2s",
+                  border: "none",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                }}
+              >
+                Choose file
+                <input
+                  id="avatar"
+                  name="avatar"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFile}
+                  style={{ display: "none" }}
+                />
+              </label>
+              <span style={{ color: "#374151" }}>
+                {avatarFile ? avatarFile.name : "No file chosen"}
+              </span>
+            </div>
           </div>
 
           {error && <div className="text-red-600 text-sm">{error}</div>}
