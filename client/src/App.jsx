@@ -15,6 +15,7 @@ import DeleteResultModal from "./components/DeleteResultModal.jsx";
 import MessageList from "./components/MessageList.jsx";
 import MessageComposer from "./components/MessageComposer.jsx";
 import AuthForm from "./components/AuthForm.jsx";
+import Profile from "./components/Profile.jsx";
 
 export default function App() {
   const [convos, setConvos] = useState([]);
@@ -361,7 +362,7 @@ export default function App() {
         ) : nav === "archived" ? (
           <div className="text-xl font-semibold mb-2">Archived</div>
         ) : nav === "profile" ? (
-          <div className="text-xl font-semibold mb-2">Profile (coming soon)</div>
+          <Profile />
         ) : nav === "settings" ? (
           <div className="text-xl font-semibold mb-2">Settings (coming soon)</div>
         ) : (
