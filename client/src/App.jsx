@@ -36,12 +36,31 @@ export default function App() {
   );
   const [authLoading, setAuthLoading] = useState(true);
   const [nav, setNav] = useState(() => localStorage.getItem("activeTab") || "chats");
+  // Theme: 'light' or 'dark' persisted to localStorage
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("theme") || "light";
+    } catch (e) {
+      return "light";
+    }
+  });
   // Persist nav (sidebar tab) to localStorage
   useEffect(() => {
     if (nav) {
       localStorage.setItem("activeTab", nav);
     }
   }, [nav]);
+
+  // Apply theme to document root and persist
+  useEffect(() => {
+    try {
+      if (theme === "dark") document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", theme);
+    } catch (e) {
+      // ignore
+    }
+  }, [theme]);
   const [showNewModal, setShowNewModal] = useState(false);
   const [error, setError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -405,7 +424,34 @@ export default function App() {
         ) : nav === "profile" ? (
           <Profile />
         ) : nav === "settings" ? (
-          <div className="text-xl font-semibold mb-2">Settings (coming soon)</div>
+          <div>
+            <div className="text-xl font-semibold mb-2">Settings</div>
+            <div className="mt-4 bg-white dark:bg-[#071025] rounded-lg p-4 shadow">
+              <h3 className="font-medium mb-2 text-gray-700 dark:text-gray-200">Appearance</h3>
+              <div className="flex items-center gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="theme"
+                    value="light"
+                    checked={theme === "light"}
+                    onChange={() => setTheme("light")}
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Light</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="theme"
+                    value="dark"
+                    checked={theme === "dark"}
+                    onChange={() => setTheme("dark")}
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Dark</span>
+                </label>
+              </div>
+            </div>
+          </div>
         ) : (
           <>
             <h1 className="text-xl font-semibold mb-2">Welcome</h1>
