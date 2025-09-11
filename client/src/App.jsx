@@ -16,6 +16,7 @@ import MessageList from "./components/MessageList.jsx";
 import MessageComposer from "./components/MessageComposer.jsx";
 import AuthForm from "./components/AuthForm.jsx";
 import Profile from "./components/Profile.jsx";
+import UserProfileModal from "./components/UserProfileModal.jsx";
 
 export default function App() {
   const [convos, setConvos] = useState([]);
@@ -43,6 +44,7 @@ export default function App() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleteResult, setDeleteResult] = useState({ open: false, type: "success", message: "" });
+  const [showUserModal, setShowUserModal] = useState(false);
 
   // TODO: Replace with real user ID from auth context
   const userId = "TODO_USER_ID";
@@ -342,7 +344,19 @@ export default function App() {
                 className="h-10 w-10 rounded-full object-cover"
               />
               <h1 className="text-xl font-semibold">
-                {activeConvo.partner ? activeConvo.partner.displayName : ""}
+                {activeConvo.partner ? (
+                  // make display name clickable to open profile modal
+                  <button
+                    type="button"
+                    onClick={() => setShowUserModal(true)}
+                    className="text-left"
+                    aria-label={`Open profile for ${activeConvo.partner.displayName}`}
+                  >
+                    {activeConvo.partner.displayName}
+                  </button>
+                ) : (
+                  ""
+                )}
               </h1>
             </header>
             <p className="text-sm text-gray-500">Conversation ID: {activeConvo.id}</p>
@@ -686,6 +700,11 @@ export default function App() {
           type={deleteResult.type}
           message={deleteResult.message}
           onClose={() => setDeleteResult((r) => ({ ...r, open: false }))}
+        />
+        <UserProfileModal
+          open={showUserModal && !!activeConvo?.partner}
+          onClose={() => setShowUserModal(false)}
+          user={activeConvo?.partner}
         />
       </aside>
     </div>
