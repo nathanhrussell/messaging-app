@@ -422,8 +422,21 @@ export default function App() {
                 <li
                   id={`convo-${c.id}`}
                   key={c.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open conversation with ${c.partner?.displayName || "Unknown"}`}
                   className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
-                  onClick={() => setActiveConvo(c)}
+                  onClick={() => {
+                    setActiveConvo(c);
+                    setNav("chats");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveConvo(c);
+                      setNav("chats");
+                    }
+                  }}
                 >
                   <img
                     src={c.partner && c.partner.avatarUrl ? c.partner.avatarUrl : "/avatar.svg"}
@@ -510,8 +523,21 @@ export default function App() {
                 <li
                   id={`convo-${c.id}`}
                   key={c.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open conversation with ${c.partner?.displayName || "Unknown"}`}
                   className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
-                  onClick={() => setActiveConvo(c)}
+                  onClick={() => {
+                    setActiveConvo(c);
+                    setNav("chats");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveConvo(c);
+                      setNav("chats");
+                    }
+                  }}
                 >
                   <img
                     src={c.partner && c.partner.avatarUrl ? c.partner.avatarUrl : "/avatar.svg"}
@@ -597,8 +623,21 @@ export default function App() {
               <li
                 id={`convo-${c.id}`}
                 key={c.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Open conversation with ${c.partner?.displayName || "Unknown"}`}
                 className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${activeConvo?.id === c.id ? "bg-blue-50 dark:bg-[#1F2937]" : ""}`}
-                onClick={() => setActiveConvo(c)}
+                onClick={() => {
+                  setActiveConvo(c);
+                  setNav("chats");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setActiveConvo(c);
+                    setNav("chats");
+                  }
+                }}
               >
                 <img
                   src={c.partner && c.partner.avatarUrl ? c.partner.avatarUrl : "/avatar.svg"}
