@@ -7,6 +7,8 @@ import {
   deleteConversation,
   getMessages,
   getUser,
+  getMe,
+  refreshToken,
 } from "./lib/api.js";
 import socketClient, { joinConversation, sendMessageSocket } from "./lib/socket.js";
 import Sidebar from "./components/Sidebar.jsx";
@@ -175,8 +177,19 @@ export default function App() {
     if (!accessToken) {
       tryRefresh();
     } else {
+      // If we have a token, get the user profile
+      (async () => {
+        try {
+          const me = await getMe();
+          setUser(me);
+        } catch (err) {
+          // Token might be expired, try to refresh
+          tryRefresh();
+        } finally {
+          setAuthLoading(false);
+        }
+      })();
       socketClient.connectSocket();
-      setAuthLoading(false);
     }
   }, [accessToken]);
 
