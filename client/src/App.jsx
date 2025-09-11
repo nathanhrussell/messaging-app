@@ -60,10 +60,6 @@ export default function App() {
         if (found) setActiveConvo(found);
       }
     }
-    // If not on chats tab, clear activeConvo
-    if (nav !== "chats") {
-      setActiveConvo(null);
-    }
   }, [loading, convos, nav]);
 
   // Immediately set a minimal activeConvo from localStorage when on the chats tab
