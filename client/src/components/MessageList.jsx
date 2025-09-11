@@ -16,7 +16,7 @@ export default function MessageList({ messages, userId }) {
             }`}
           >
             {m.body}
-            <span className="block text-xs text-gray-400 mt-1">
+            <span className="block text-xs mt-1">
               {new Date(m.createdAt).toLocaleTimeString()}
             </span>
           </div>
