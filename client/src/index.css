@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+/* Tailwind v4: override the default media-query driven dark variant so our
+	manual toggling via the `dark` class on <html> works. Without this, the
+	generated `dark:` utilities only respond to the user's OS preference and
+	ignore the presence of the `.dark` class we add/remove in JS. */
+@custom-variant dark (&:where(.dark, .dark *));
