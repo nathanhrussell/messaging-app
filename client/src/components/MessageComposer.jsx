@@ -1,14 +1,31 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 
 export default function MessageComposer({ onSend, disabled }) {
   const [body, setBody] = useState("");
 
+  const sendMessage = async (text) => {
+    const trimmed = (text ?? body).trim();
+    if (!trimmed) return;
+    await onSend(trimmed);
+    setBody("");
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!body.trim()) return;
-    await onSend(body);
-    setBody("");
+    if (disabled) return;
+    await sendMessage(body);
+  };
+
+  const handleKeyDown = async (e) => {
+    // Don't interfere with IME composition
+    if (e.isComposing) return;
+    if (e.key === "Enter" && !e.shiftKey) {
+      // Prevent newline and submit
+      e.preventDefault();
+      if (disabled) return;
+      await sendMessage(body);
+    }
   };
 
   return (
@@ -18,6 +35,7 @@ export default function MessageComposer({ onSend, disabled }) {
         rows={2}
         value={body}
         onChange={(e) => setBody(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder="Type a message…"
         disabled={disabled}
         style={{ resize: "none" }}
