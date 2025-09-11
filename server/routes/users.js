@@ -30,12 +30,28 @@ function validateBio(input) {
   return { ok: true, value: raw };
 }
 
+function validateTagline(input) {
+  if (input === undefined) return { ok: true, value: undefined };
+  const raw = stripHtml(input).trim();
+  if (raw.length === 0) return { ok: true, value: null };
+  if (raw.length > 1000) return { ok: false, error: "Tagline must be at most 1000 characters" };
+  return { ok: true, value: raw };
+}
+
 // GET /api/users/me
 router.get("/me", requireAuth, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, email: true, displayName: true, bio: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        bio: true,
+        tagline: true,
+        avatarUrl: true,
+        createdAt: true,
+      },
     });
     if (!user) return res.status(404).json({ error: "User not found" });
     return res.json(user);
@@ -53,18 +69,29 @@ router.patch("/me", requireAuth, async (req, res) => {
     const b = validateBio(req.body?.bio);
     if (!b.ok) return res.status(400).json({ error: b.error });
 
-    if (dn.value === undefined && b.value === undefined) {
+    const t = validateTagline(req.body?.tagline);
+    if (!t.ok) return res.status(400).json({ error: t.error });
+
+    if (dn.value === undefined && b.value === undefined && t.value === undefined) {
       return res.status(400).json({ error: "Nothing to update" });
     }
 
     const data = {};
     if (dn.value !== undefined) data.displayName = dn.value;
     if (b.value !== undefined) data.bio = b.value;
+    if (t.value !== undefined) data.tagline = t.value;
 
     const updated = await prisma.user.update({
       where: { id: req.user.id },
       data,
-      select: { id: true, email: true, displayName: true, bio: true },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        bio: true,
+        tagline: true,
+        avatarUrl: true,
+      },
     });
 
     return res.json(updated);
