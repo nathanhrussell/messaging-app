@@ -405,7 +405,6 @@ export default function App() {
                 )}
               </h1>
             </header>
-            <p className="text-sm text-gray-500">Conversation ID: {activeConvo.id}</p>
             <section className="mt-6">
               {messagesLoading ? (
                 <div className="text-gray-500 text-sm">Loading messages…</div>
