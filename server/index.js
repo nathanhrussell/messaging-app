@@ -42,20 +42,18 @@ app.use(
   })
 );
 
-app.use(express.json());
-app.use("/api/conversations", conversationsRouter);
-app.use("/api/auth", authDebug);
-
-app.use(express.json({ limit: "1mb" })); // <-- move up
-app.use(express.urlencoded({ extended: true })); // <-- move up
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 // Logging: concise in dev, combined in prod
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 // --- Routes
 app.use("/", healthRouter);
-app.use("/api/auth", authRouter); // <-- now after parsers
+app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/conversations", conversationsRouter);
+app.use("/api/auth", authDebug);
 
 // --- Healthchecks
 app.get("/health", (_req, res) => {
