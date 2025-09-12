@@ -47,6 +47,7 @@ app.use("/api/auth", authDebug);
 app.use(express.json({ limit: "1mb" })); // <-- move up
 app.use(express.urlencoded({ extended: true })); // <-- move up
 app.use(cookieParser());
+// Logging: concise in dev, combined in prod
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
 // --- Routes
@@ -87,10 +88,12 @@ app.use((err, _req, res, _next) => {
     return res.status(400).json({ error: "Malformed JSON" });
   }
 
-  // Fallback
+  // Fallback: include stack trace in non-production for easier debugging
   // eslint-disable-next-line no-console
-  console.error("Unhandled error:", err);
-  return res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+  console.error("Unhandled error:", err.stack || err);
+  const payload = { error: err.message || "Internal server error" };
+  if (process.env.NODE_ENV !== "production") payload.stack = err.stack;
+  return res.status(err.status || 500).json(payload);
 });
 
 const server = http.createServer(app);
