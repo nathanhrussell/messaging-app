@@ -119,3 +119,14 @@ export async function getConversationsForUser(userId, { limit = 20 } = {}) {
     };
   });
 }
+
+/**
+ * Return true if the given userId is participant in the conversation
+ */
+export async function isParticipant(userId, conversationId) {
+  const row = await prisma.participant.findUnique({
+    where: { userId_conversationId: { userId, conversationId } },
+    select: { id: true },
+  });
+  return !!row;
+}
