@@ -11,7 +11,11 @@ function refreshCookieOptions() {
   return {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? "strict" : "lax",
+    // For deployed frontends that live on a different origin (or served
+    // via a CDN), SameSite='none' is required to allow cross-site cookies;
+    // cookie will only be sent if `credentials: 'include'` is used on the
+    // client and server CORS allows credentials and the origin.
+    sameSite: isProd ? "none" : "lax",
     path: "/api/auth/refresh",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
@@ -39,6 +43,10 @@ router.post("/signup", async (req, res) => {
     res.cookie("refresh_token", refresh, refreshCookieOptions());
     return res.status(201).json({ accessToken: access, user });
   } catch (e) {
+    // Log the error for diagnostics; keep client-facing message generic
+    // to avoid leaking sensitive details.
+    // eslint-disable-next-line no-console
+    console.error("Signup error:", e && e.stack ? e.stack : e);
     return res.status(500).json({ error: "Signup failed" });
   }
 });
@@ -63,6 +71,8 @@ router.post("/login", async (req, res) => {
     res.cookie("refresh_token", refresh, refreshCookieOptions());
     return res.json({ accessToken: access, user: publicUser });
   } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("Login error:", e && e.stack ? e.stack : e);
     return res.status(500).json({ error: "Login failed" });
   }
 });
@@ -80,6 +90,8 @@ router.post("/refresh", async (req, res) => {
 
     return res.json({ accessToken: access });
   } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error("Refresh token error:", e && e.stack ? e.stack : e);
     return res.status(401).json({ error: "Invalid or expired refresh token" });
   }
 });

@@ -1,11 +1,18 @@
-const USE_COOKIES = false;
+// Whether the client should rely on httpOnly refresh cookies instead of
+// storing refresh tokens in JS. When deploying the frontend and backend to
+// the same origin this can be `false`. For many platform setups (separate
+// services / domains) cookies are preferable if CORS/credentials are
+// configured correctly. Default to `true` so deployed apps using cookies
+// will work out of the box; change to `false` only if you intentionally
+// want token-only auth.
+const USE_COOKIES = true;
 
 export async function patchParticipantFlags(conversationId, updates) {
   const res = await fetch(`/api/conversations/${conversationId}/participant`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", Accept: "application/json", ...authHeaders() },
     body: JSON.stringify(updates),
-    credentials: USE_COOKIES ? "include" : "same-origin",
+    credentials: USE_COOKIES ? "include" : "omit",
   });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
@@ -83,6 +90,7 @@ export async function login(email, password) {
 export async function refreshToken() {
   const res = await fetch("/api/auth/refresh", {
     method: "POST",
+    // Use include so httpOnly cookies (refresh_token) are sent to the API.
     credentials: USE_COOKIES ? "include" : "omit",
   });
   if (!res.ok) throw new Error((await res.json()).error || res.statusText);
@@ -158,7 +166,7 @@ export async function deleteConversation(conversationId) {
   const res = await fetch(`/api/conversations/${conversationId}`, {
     method: "DELETE",
     headers: { Accept: "application/json", ...authHeaders() },
-    credentials: USE_COOKIES ? "include" : "same-origin",
+    credentials: USE_COOKIES ? "include" : "omit",
   });
   if (!res.ok) throw new Error((await res.json()).error || `${res.status} ${res.statusText}`);
   return res.json();
