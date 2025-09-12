@@ -22,7 +22,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "seed": "node prisma/seed.js",
-    "build:client": "npm --prefix client run build",
+    "build:client": "npm --prefix client ci && npm --prefix client run build",
     "test:client": "npm --prefix client test",
     "client:dev": "cd client && npm run dev",
     "client:build": "cd client && npm run build",
