@@ -29,11 +29,31 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // --- Global middleware (must come BEFORE routes that read req.body)
-app.use(helmet());
 const allowedOrigin =
   process.env.NODE_ENV === "production"
     ? process.env.CORS_ORIGIN_PROD
     : process.env.CORS_ORIGIN || "http://localhost:5173";
+
+// Configure helmet with a Content Security Policy that allows images from
+// our Cloudinary account and data URIs, while still being reasonably strict
+// for other resource types. This prevents the default CSP from blocking
+// external avatar images (e.g. Cloudinary) while keeping other protections.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+        connectSrc: ["'self'", allowedOrigin, "https://res.cloudinary.com"],
+        fontSrc: ["'self'", "data:"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+  })
+);
 
 app.use(
   cors({
@@ -76,6 +96,13 @@ const clientDistPath = path.join(process.cwd(), "client", "dist");
 const clientSrcPath = path.join(process.cwd(), "client");
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
+  // Serve a fallback avatar from the repository root so references like
+  // `/avatar.svg` work even when the client build places hashed assets in
+  // `client/dist`. This lets the default avatar be available on deployed
+  // builds without changing the client code.
+  app.get("/avatar.svg", (_req, res) => {
+    res.sendFile(path.join(process.cwd(), "client", "avatar.svg"));
+  });
   // SPA fallback to index.html in the dist folder
   // Use middleware approach for Express v5 compatibility
   app.use((_req, res) => {
