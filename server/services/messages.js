@@ -1,4 +1,5 @@
 import prisma from "../db/prisma.js";
+import sanitizeMessageBody from "../lib/sanitize.js";
 
 // Fetch messages for a conversation, paginated, newest first
 export async function getMessagesForConversation(
@@ -49,11 +50,13 @@ export async function sendMessageToConversation(userId, conversationId, body) {
     throw e;
   }
 
+  const sanitized = sanitizeMessageBody(body, { maxLength: 2000 });
+
   const message = await prisma.message.create({
     data: {
       conversationId,
       senderId: userId,
-      body,
+      body: sanitized,
     },
     select: {
       id: true,

@@ -34,7 +34,9 @@ export default function App() {
   const [accessToken, setAccessTokenState] = useState(
     () => localStorage.getItem("accessToken") || ""
   );
-  const [authLoading, setAuthLoading] = useState(true);
+  // authLoading is true when we're performing a silent refresh; if we already
+  // have an access token in localStorage we can avoid the initial Loading…
+  const [authLoading, setAuthLoading] = useState(() => (accessToken ? false : true));
   const [nav, setNav] = useState(() => localStorage.getItem("activeTab") || "chats");
   // Theme: 'light' or 'dark' persisted to localStorage
   const [theme, setTheme] = useState(() => {

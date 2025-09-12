@@ -78,6 +78,15 @@ describe("POST /api/conversations/:id/messages", () => {
     expect(res.body.senderId).toBeTruthy();
   });
 
+  it("sanitizes HTML/script in message body", async () => {
+    const res = await request(app)
+      .post(`/api/conversations/${conversationId}/messages`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ body: "Hello <b>bold</b> <script>alert('x')</script> world" });
+    expect(res.statusCode).toBe(201);
+    expect(res.body.body).toBe("Hello bold world");
+  });
+
   it("rejects empty message", async () => {
     const res = await request(app)
       .post(`/api/conversations/${conversationId}/messages`)
