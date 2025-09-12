@@ -77,8 +77,10 @@ const clientSrcPath = path.join(process.cwd(), "client");
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
   // SPA fallback to index.html in the dist folder
-  // Express v5 compatible catch-all route
-  app.get("/(.*)", (_req, res) => res.sendFile(path.join(clientDistPath, "index.html")));
+  // Use middleware approach for Express v5 compatibility
+  app.use((_req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
+  });
 } else if (fs.existsSync(clientSrcPath)) {
   app.use(express.static(clientSrcPath));
 }
