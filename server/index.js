@@ -77,7 +77,6 @@ const clientSrcPath = path.join(process.cwd(), "client");
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
   // SPA fallback to index.html in the dist folder
-  // Use '/*' instead of '*' to be compatible with path-to-regexp v6+ used by Express/router
   app.get("*", (_req, res) => res.sendFile(path.join(clientDistPath, "index.html")));
 } else if (fs.existsSync(clientSrcPath)) {
   app.use(express.static(clientSrcPath));
