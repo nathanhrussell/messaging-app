@@ -19,11 +19,17 @@ export async function patchParticipantFlags(conversationId, updates) {
 }
 
 export function setAccessToken(t) {
-  if (!USE_COOKIES && t) localStorage.setItem("accessToken", t);
+  // Always persist the access token to localStorage when provided so
+  // authHeaders() can include it on requests. This keeps compatibility
+  // with both cookie-based refresh and token-based Authorization headers.
+  if (t) localStorage.setItem("accessToken", t);
+  else localStorage.removeItem("accessToken");
 }
 
 function authHeaders() {
-  if (USE_COOKIES) return {};
+  // Include Authorization header from localStorage if present. Even when
+  // cookies are used for refresh tokens, many API endpoints expect an
+  // explicit Bearer access token in the Authorization header.
   const t = localStorage.getItem("accessToken");
   return t ? { Authorization: `Bearer ${t}` } : {};
 }
