@@ -1,5 +1,7 @@
 /* eslint-disable no-console */
 import "dotenv/config";
+import fs from "fs";
+import path from "path";
 import http from "http";
 import express from "express";
 import cors from "cors";
@@ -70,12 +72,25 @@ app.get("/db-health", async (_req, res) => {
   }
 });
 
-// (Optional) serve static client during early dev
-app.use(express.static("client"));
+// Serve static client if present. Prefer the production build in `client/dist`.
+// Falls back to the `client` folder (useful during development or preview).
+const clientDistPath = path.join(process.cwd(), "client", "dist");
+const clientSrcPath = path.join(process.cwd(), "client");
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  // SPA fallback to index.html in the dist folder
+  app.get("*", (_req, res) => res.sendFile(path.join(clientDistPath, "index.html")));
+} else if (fs.existsSync(clientSrcPath)) {
+  app.use(express.static(clientSrcPath));
+}
 
 // --- Global error handler (should come after routes)
 // Catches body-parser errors (payload too large) and malformed JSON
-app.use((err, _req, res, _next) => {
+app.use((err, _req, res, next) => {
+  // `next` is intentionally unused here but referenced to satisfy lint rules
+  /* eslint-disable no-unused-expressions */
+  next;
+  /* eslint-enable no-unused-expressions */
   if (!err) return res.status(500).json({ error: "Unknown error" });
 
   // Payload too large
