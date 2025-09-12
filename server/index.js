@@ -72,6 +72,27 @@ app.get("/db-health", async (_req, res) => {
 // (Optional) serve static client during early dev
 app.use(express.static("client"));
 
+// --- Global error handler (should come after routes)
+// Catches body-parser errors (payload too large) and malformed JSON
+app.use((err, _req, res, _next) => {
+  if (!err) return res.status(500).json({ error: "Unknown error" });
+
+  // Payload too large
+  if (err.type === "entity.too.large" || err.status === 413) {
+    return res.status(413).json({ error: "Payload too large" });
+  }
+
+  // Malformed JSON (SyntaxError thrown by body parser)
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    return res.status(400).json({ error: "Malformed JSON" });
+  }
+
+  // Fallback
+  // eslint-disable-next-line no-console
+  console.error("Unhandled error:", err);
+  return res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+});
+
 const server = http.createServer(app);
 setupSocketIO(server);
 
