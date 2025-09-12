@@ -85,7 +85,9 @@ router.post("/refresh", async (req, res) => {
 });
 
 router.post("/logout", async (_req, res) => {
-  res.clearCookie("refresh_token", { path: "/api/auth/refresh" });
+  // Clear cookie using the same options (path, sameSite, etc.) so it is removed
+  // correctly in both dev and production environments.
+  res.clearCookie("refresh_token", refreshCookieOptions());
   return res.status(204).send();
 });
 

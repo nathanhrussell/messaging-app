@@ -20,6 +20,12 @@ import { setupSocketIO } from "./socket/index.js";
 
 const app = express();
 
+// If running behind a proxy (Render/Heroku), enable trust proxy so `secure`
+// cookie flag and client IPs work correctly.
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 // --- Global middleware (must come BEFORE routes that read req.body)
 app.use(helmet());
 const allowedOrigin =
@@ -76,7 +82,8 @@ setupSocketIO(server);
     console.log("✅ Database connection OK");
     if (process.env.NODE_ENV !== "test") {
       server.listen(config.port, () => {
-        console.log(`🚀 Server listening on http://localhost:${config.port}`);
+        const host = process.env.NODE_ENV === "production" ? "(production)" : "http://localhost";
+        console.log(`🚀 Server listening on ${host}:${config.port}`);
       });
     }
   } catch (err) {
